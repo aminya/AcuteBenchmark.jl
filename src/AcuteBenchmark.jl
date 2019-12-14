@@ -62,7 +62,7 @@ function BenchConfig(; functions, limits, types, dims)
 
         for iType = 1:numTypes
 
-            inputs[iFun][iType] = Vector(undef, numArgs)
+            inputs[iFun][iType] = NTuple{numArgs, Any}
             sets[iFun][iType] = Vector(undef, numArgs)
 
             for iArg = 1:numArgs
@@ -77,5 +77,28 @@ function BenchConfig(; functions, limits, types, dims)
     return BenchConfig( functions, limits, types, dims, sets, inputs)
 end
 
+struct BenchResult
+    # public
+    functions::Vector{Union{Function, Expr}}
+    types::Vector{Vector{DataType}}
+    dims::Vector{Vector{Union{Number, Tuple}}}
+    # private
+    benchmark
+end
+
+"""
+    BenchResult(config::BenchConfig)
+
+"""
+function BenchResult(config::BenchConfig)
+    # benchmark = Trial
+    for (iFun, fun) in enumerate(config.functions)
+        for (iType, type) in enumerate(config.types)
+            inp = config.inputs[iFun][iType]
+            benchmark[iFun][iType] = @benchmark $fun($inp...)
+        end
+    end
+    return BenchResult(config.functions, config.types, config.dims, benchmark)
+end
 
 end
