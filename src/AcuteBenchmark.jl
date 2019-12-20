@@ -46,7 +46,7 @@ struct BenchConfig
     functions::Vector{Union{Function, Expr}}
     limits::Vector{Vector{NTuple{2, T}}} where {T}
     types::Vector{Vector{DataType}}
-    dims::Vector{Vector{Union{Number, Tuple}}}
+    dims::Vector{Array{Union{Number, Tuple}}}
     # private
     sets #::Vector{Vector{Vector{T}}} where {T<:Distribution} # vector of input sets for each function. Each set is an array of distributions
     inputs #::Vector{Vector{Vector{T}}} where {T}
@@ -64,18 +64,31 @@ function BenchConfig(; functions, limits, types, dims)
         sets[iFun] = Vector(undef, numTypes)
         inputs[iFun] = Vector(undef, numTypes)
 
-        numArgs  = length(dims[iFun])
-
         for iType = 1:numTypes
 
-            inputs[iFun][iType] = NTuple{numArgs, Any}
+            dimsDims = ndims(dims[iFun])
+            dimsSize  = size(dims[iFun])
+
+            if dimsDims == 1
+                numArgs = dimsSize[1]
+                numDims = 1
+            elseif dimsDims == 2
+                numArgs = dimsSize[1]
+                numDims = dimsSize[2]
+            end
+
             sets[iFun][iType] = Vector(undef, numArgs)
 
-            for iArg = 1:numArgs
+            inputs[iFun][iType] = Vector(undef, numDims)
 
-                sets[iFun][iType][iArg] = Uniform(types[iFun][iType], limits[iFun][iArg]...)
+            for iDim = 1:numDims
 
-                inputs[iFun][iType][iArg] = rand(sets[iFun][iType][iArg], dims[iFun][iArg])
+                inputs[iFun][iType][iDim] = Vector(undef, numArgs) # {Array{types[iFun][iType]}}
+
+                for iArg = 1:numArgs
+                    sets[iFun][iType][iArg] = Uniform(types[iFun][iType], limits[iFun][iArg]...)
+                    inputs[iFun][iType][iDim][iArg] = convert.(types[iFun][iType], rand(sets[iFun][iType][iArg], dims[iFun][iArg, iDim]) )
+                end
             end
 
         end
