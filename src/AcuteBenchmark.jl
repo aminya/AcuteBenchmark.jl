@@ -17,13 +17,14 @@ end
 """
     BenchConfig(;functions, sets, dims)
 
+Creates random inputs for functions based on limits, types, and dims specified. Each of these arguments is a vector. So to benchmark each function, there should be a coresponding row in each vector (functions, limits, types, dims).
+
 # Arguments
 - functions: vector of functions: Module.fun or :(Module.fun)
-- limits
-- types
-- dims: Matrix of dimensions of the input vectors for each argument. Each column is for a new set of sizes, and each row is for different input arguments.
+- limits: min and max of possible values
+- types : type of elements
+- dims: Array of dimensions of the input vectors for each argument. Each column is for a new set of sizes, and each row is for different input arguments.
 
-Creates random inputs based on the number of inputs and the domain specified in funs
 # Examples
 ```julia
 config = BenchConfig(
