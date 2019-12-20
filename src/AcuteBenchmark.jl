@@ -1,15 +1,14 @@
 module AcuteBenchmark
 
 using Distributions # for random input generation
-# using BenchmarkTools # for benchmark
+using BenchmarkTools # for benchmark
 # using Plots # for plotting
 # using JLD2, FileIO # to save file
-
-# export DataFrame # from DataFrames
-################################################################
-# Vector Benchmark
 # using DataFrames
+################################################################
+export BenchConfig
 
+################################################################
 function Distributions.Uniform(::Type{T}, a, b) where {T <: Real}
     return Uniform(T(a), T(b))
 end
