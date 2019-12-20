@@ -22,16 +22,22 @@ end
 - functions: vector of functions: Module.fun or :(Module.fun)
 - limits
 - types
-- dims: vector of dimensions of the input vectors for each argument
+- dims: Matrix of dimensions of the input vectors for each argument. Each column is for a new set of sizes, and each row is for different input arguments.
 
 Creates random inputs based on the number of inputs and the domain specified in funs
 # Examples
 ```julia
 config = BenchConfig(
-    functions = [sin, atan, *],
-    limits = [[(-1,1)], [(-1,1), (-1,1)], [(-1, 1), (-1, 1), (-1, 1)]],
+    functions = [sin,
+                atan,
+                *],
+    limits = [[(-1,1)],
+             [(-1,1), (-1,1)],
+             [(-1, 1), (-1, 1), (-1, 1)]],
     types = fill([Float32, Float64], (3)),
-    dims = [ [1000], [1000, 1000], [(1000,1000), (1000,1000)] ],
+    dims = [ [1000],
+             [1000, 1000],
+             [(1000,1000), (1000,1000)] ],
 )
 ```
 """
