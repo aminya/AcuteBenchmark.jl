@@ -6,7 +6,7 @@ using BenchmarkTools # for benchmark
 # using JLD2, FileIO # to save file
 # using DataFrames
 ################################################################
-export BenchConfig
+export BenchConfig, BenchResult
 
 ################################################################
 function Distributions.Uniform(::Type{T}, a, b) where {T <: Real}
@@ -27,6 +27,8 @@ Creates random inputs for functions based on limits, types, and dims specified. 
 
 # Examples
 ```julia
+using AcuteBenchmark
+
 config = BenchConfig(
     functions = [sin,
                 atan,
@@ -35,9 +37,9 @@ config = BenchConfig(
              [(-1,1), (-1,1)],
              [(-1, 1), (-1, 1), (-1, 1)]],
     types = fill([Float32, Float64], (3)),
-    dims = [ [1000],
-             [1000, 1000],
-             [(1000,1000), (1000,1000)] ],
+    dims = [ [100],
+             [100, 100],
+             [(100,100), (100,100)] ],
 )
 ```
 """
@@ -102,22 +104,81 @@ struct BenchResult
     types::Vector{Vector{DataType}}
     dims::Vector{Vector{Union{Number, Tuple}}}
     # private
-    benchmark
+    result
 end
 
 """
     BenchResult(config::BenchConfig)
 
+Performs the benchmarking on a given BenchConfig.
+
+# Examples
+```julia
+using AcuteBenchmark
+
+config = BenchConfig(
+    functions = [sin,
+                atan,
+                *],
+    limits = [[(-1,1)],
+             [(-1,1), (-1,1)],
+             [(-1, 1), (-1, 1), (-1, 1)]],
+    types = fill([Float32, Float64], (3)),
+    dims = [ [100],
+             [100, 100],
+             [(100,100), (100,100)] ],
+)
+
+BenchResult(config)
+```
 """
 function BenchResult(config::BenchConfig)
-    # benchmark = Trial
+
+    numFuns = length(config.functions)
+    result = Vector{Any}(undef, numFuns)
+    # {BenchmarkTools.Trial}(undef, numFuns, numTypes, numDims)
+
     for (iFun, fun) in enumerate(config.functions)
-        for (iType, type) in enumerate(config.types)
-            inp = config.inputs[iFun][iType]
-            benchmark[iFun][iType] = @benchmark $fun($inp...)
+
+        numTypes = length(config.types[iFun])
+        result[iFun] = Vector{Any}(undef, numTypes)
+
+        for (iType, type) in enumerate(config.types[iFun])
+
+            dimsDims = ndims(config.dims[iFun])
+            dimsSize  = size(config.dims[iFun])
+
+            if dimsDims == 1
+                numArgs = dimsSize[1]
+                numDims = 1
+            elseif dimsDims == 2
+                numArgs = dimsSize[1]
+                numDims = dimsSize[2]
+            end
+
+            result[iFun][iType] = Vector{BenchmarkTools.Trial}(undef, numDims)
+
+            for iDim = 1:numDims
+                inp = config.inputs[iFun][iType][iDim]
+
+                println("Benchmarking $fun - $type - dimension set $iDim")
+                if numArgs == 1 # single argument function
+                    if hasmethod(fun, (typeof(inp[1]),)) # check if array method exists
+                        result[iFun][iType][iDim] = @benchmark $fun($inp[1])
+                    else # broadcast
+                        result[iFun][iType][iDim] = @benchmark $fun.($inp[1])
+                    end
+                else
+                    if hasmethod(fun, Tuple(typeof.(inp))) # check if array method exists
+                        result[iFun][iType][iDim] = @benchmark $fun($inp...)
+                    else # broadcast
+                        result[iFun][iType][iDim] = @benchmark $fun.($inp...)
+                    end
+                end
+            end
         end
     end
-    return BenchResult(config.functions, config.types, config.dims, benchmark)
+    return BenchResult(config.functions, config.types, config.dims, result)
 end
 
 end
