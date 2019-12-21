@@ -1,7 +1,7 @@
 module AcuteBenchmark
 
 using StructArrays # for type definitions
-using Distributions # for random input generation
+using Distributions, Statistics # for random input generation
 using BenchmarkTools # for benchmark
 # using Plots # for plotting
 # using JLD2, FileIO # to save file
@@ -53,7 +53,7 @@ struct Funb
     sets #::Vector{Vector{T}} where {T<:Distribution} # vector of input sets for each function. Each set is an array of distributions
     inputs #::Vector{Vector{T}} where {T}
 
-    result
+    results
 end
 
 Funb( fun, limits, types, dims) =  Funb( fun = fun, limits = limits, types = types, dims = dims)
@@ -63,7 +63,7 @@ function Funb(; fun, limits, types, dims)
         numTypes  = length(types)
         sets = Vector(undef, numTypes)
         inputs = Vector(undef, numTypes)
-        result = Vector{Any}(undef, numTypes)
+        results = Vector{Any}(undef, numTypes)
 
         for iType = 1:numTypes
 
@@ -81,7 +81,7 @@ function Funb(; fun, limits, types, dims)
             sets[iType] = Vector(undef, numArgs)
             inputs[iType] = Vector(undef, numDims)
 
-            result[iType] = Vector{BenchmarkTools.Trial}(undef, numDims)
+            results[iType] = Vector{BenchmarkTools.Trial}(undef, numDims)
 
             for iDim = 1:numDims
 
@@ -95,9 +95,9 @@ function Funb(; fun, limits, types, dims)
 
         end
 
-    return Funb( fun, limits, types, dims, sets, inputs, result)
+    return Funb( fun, limits, types, dims, sets, inputs, results)
 end
-
+################################################################
 """
     FunbArray
 
@@ -144,7 +144,7 @@ function FunbArray(;fun, limits, types, dims)
 
     return StructArray(configs)
 end
-
+################################################################
 """
     benchmark!(config::StructArray{Funb}) # FunbArray{Funb}
     benchmark!(config::Array{Funb})
@@ -192,15 +192,15 @@ function benchmark!(config::StructArray{Funb})
 
                 if numArgs == 1 # single argument function
                     if hasmethod(fun, (typeof(inp[1]),)) # check if array method exists
-                        config[iFun].result[iType][iDim] = @benchmark $fun($inp[1])
+                        config[iFun].results[iType][iDim] = @benchmark $fun($inp[1])
                     else # broadcast
-                        config[iFun].result[iType][iDim] = @benchmark $fun.($inp[1])
+                        config[iFun].results[iType][iDim] = @benchmark $fun.($inp[1])
                     end
                 else
                     if hasmethod(fun, Tuple(typeof.(inp))) # check if array method exists
-                        config[iFun].result[iType][iDim] = @benchmark $fun($inp...)
+                        config[iFun].results[iType][iDim] = @benchmark $fun($inp...)
                     else # broadcast
-                        config[iFun].result[iType][iDim] = @benchmark $fun.($inp...)
+                        config[iFun].results[iType][iDim] = @benchmark $fun.($inp...)
                     end
                 end
             end
@@ -211,5 +211,21 @@ end
 
 benchmark!(config::Array{Funb}) = benchmark!(FunbArray(config))
 benchmark!(config::Funb) = benchmark!([config])
+
+                    xticks!(1:length(fns)+1, fname, rotation = 70, fontsize = 10)
+                    title!("VML Performance for array of size $NVALS")
+                    ylabel!("Relative Speed (VML/Base)")
+                    hline!([1], line=(4, :dash, 0.6, [:green]), labels = 1)
+                    savefig("performance$(complex ? "_complex" : "").png")
+
+                end
+            end
+        end
+
+    elseif xvariable == :dims
+
+    end
+
+end
 
 end
