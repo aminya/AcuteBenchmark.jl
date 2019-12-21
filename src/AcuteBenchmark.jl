@@ -7,7 +7,7 @@ using BenchmarkTools # for benchmark
 # using JLD2, FileIO # to save file
 # using DataFrames
 ################################################################
-export Funb, FunbArray, BenchResult
+export Funb, FunbArray, benchmark!
 
 ################################################################
 function Distributions.Uniform(::Type{T}, a, b) where {T <: Real}
@@ -41,14 +41,19 @@ config = Funb( sin, [(-1,1)], [Float32, Float64], [100])
 ```
 """
 struct Funb
+
     # public
     fun::T where {T<:Function}
     limits::Vector{NTuple{2, T}} where {T}
     types::Vector{DataType}
     dims::Vector{T1} where {T1<:Union{T2, Tuple}} where {T2<:Number}
-    # private
+
+    # private - calculated
+
     sets #::Vector{Vector{T}} where {T<:Distribution} # vector of input sets for each function. Each set is an array of distributions
     inputs #::Vector{Vector{T}} where {T}
+
+    result
 end
 
 Funb( fun, limits, types, dims) =  Funb( fun = fun, limits = limits, types = types, dims = dims)
@@ -58,6 +63,7 @@ function Funb(; fun, limits, types, dims)
         numTypes  = length(types)
         sets = Vector(undef, numTypes)
         inputs = Vector(undef, numTypes)
+        result = Vector{Any}(undef, numTypes)
 
         for iType = 1:numTypes
 
@@ -73,8 +79,9 @@ function Funb(; fun, limits, types, dims)
             end
 
             sets[iType] = Vector(undef, numArgs)
-
             inputs[iType] = Vector(undef, numDims)
+
+            result[iType] = Vector{BenchmarkTools.Trial}(undef, numDims)
 
             for iDim = 1:numDims
 
@@ -88,7 +95,7 @@ function Funb(; fun, limits, types, dims)
 
         end
 
-    return Funb( fun, limits, types, dims, sets, inputs)
+    return Funb( fun, limits, types, dims, sets, inputs, result)
 end
 
 """
@@ -139,8 +146,8 @@ function FunbArray(;fun, limits, types, dims)
 end
 
 """
-    benchmark(configs::StructArray{Funb}) # FunbArray{Funb}
-    benchmark(configs::Array{Funb})
+    benchmark!(config::StructArray{Funb}) # FunbArray{Funb}
+    benchmark!(config::Array{Funb})
 
 Performs the benchmarking on a given Funb.
 
@@ -154,19 +161,16 @@ configs = FunbArray([
     Funb( *, [(-1, 1), (-1, 1), (-1, 1)], [Float32, Float64], [(100,100), (100,100)] );
     ])
 
-result = benchmark(configs)
+benchmark!(configs)
 ```
 """
-function benchmark(config::StructArray{Funb})
+function benchmark!(config::StructArray{Funb})
 
     numFuns = length(config.fun)
-    result = Vector{Any}(undef, numFuns)
-    # {BenchmarkTools.Trial}(undef, numFuns, numTypes, numDims)
 
     for (iFun, fun) in enumerate(config.fun)
 
         numTypes = length(config.types[iFun])
-        result[iFun] = Vector{Any}(undef, numTypes)
 
         for (iType, type) in enumerate(config.types[iFun])
 
@@ -181,8 +185,6 @@ function benchmark(config::StructArray{Funb})
                 numDims = dimsSize[2]
             end
 
-            result[iFun][iType] = Vector{BenchmarkTools.Trial}(undef, numDims)
-
             for iDim = 1:numDims
                 inp = config.inputs[iFun][iType][iDim]
 
@@ -190,23 +192,26 @@ function benchmark(config::StructArray{Funb})
 
                 if numArgs == 1 # single argument function
                     if hasmethod(fun, (typeof(inp[1]),)) # check if array method exists
-                        result[iFun][iType][iDim] = @benchmark $fun($inp[1])
+                        config[iFun].result[iType][iDim] = @benchmark $fun($inp[1])
                     else # broadcast
-                        result[iFun][iType][iDim] = @benchmark $fun.($inp[1])
+                        config[iFun].result[iType][iDim] = @benchmark $fun.($inp[1])
                     end
                 else
                     if hasmethod(fun, Tuple(typeof.(inp))) # check if array method exists
-                        result[iFun][iType][iDim] = @benchmark $fun($inp...)
+                        config[iFun].result[iType][iDim] = @benchmark $fun($inp...)
                     else # broadcast
-                        result[iFun][iType][iDim] = @benchmark $fun.($inp...)
+                        config[iFun].result[iType][iDim] = @benchmark $fun.($inp...)
                     end
                 end
             end
         end
     end
-    return result
+    return config
 end
 
-benchmark(configs::Array{Funb}) = benchmark(FunbArray(configs))
+benchmark!(config::Array{Funb}) = benchmark!(FunbArray(config))
+
+
+
 
 end
