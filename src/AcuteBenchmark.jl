@@ -90,8 +90,52 @@ function Funb(; fun, limits, types, dims)
 
     return Funb( fun, limits, types, dims, sets, inputs)
 end
+
+"""
+    FunbArray
+
+Array of Funb configs for different functions.
+
+# Examples
+```julia
+using AcuteBenchmark
+
+configs = FunbArray([
+    Funb( sin, [(-1,1)],[Float32, Float64], [100] );
+    Funb( atan, [(-1,1), (-1,1)],[Float32, Float64],[100, 100] );
+    Funb( *, [(-1, 1), (-1, 1), (-1, 1)], [Float32, Float64], [(100,100), (100,100)] );
+    ])
+
+```
+
+You can also directly give the configs in vectors:
+```julia
+configs = FunbArray(
+    fun =   [sin,
+             atan,
+             *],
+    limits = [[(-1,1)],
+             [(-1,1), (-1,1)],
+             [(-1, 1), (-1, 1), (-1, 1)]],
+    types = fill([Float32, Float64], (3)),
+    dims = [ [100],
+             [100, 100],
+             [(100,100), (100,100)] ],
+)
+```
+"""
+FunbArray(configs::Array{Funb}) = StructArray(configs)
+
+function FunbArray(;fun, limits, types, dims)
+
+    numFun = length(fun)
+    configs = Vector{Funb}(undef, numFun)
+
+    for iFun = 1:numFun
+        configs[iFun] = Funb(fun = fun[iFun], limits = limits[iFun], types = types[iFun], dims = dims[iFun])
     end
-    return BenchConfig( functions, limits, types, dims, sets, inputs)
+
+    return StructArray(configs)
 end
 
 struct BenchResult
