@@ -219,17 +219,11 @@ end
 benchmark!(config::Array{Funb}) = benchmark!(FunbArray(config))
 benchmark!(config::Funb) = benchmark!([config])
 
-                    xticks!(1:length(fns)+1, fname, rotation = 70, fontsize = 10)
-                    title!("VML Performance for array of size $NVALS")
-                    ylabel!("Relative Speed (VML/Base)")
-                    hline!([1], line=(4, :dash, 0.6, [:green]), labels = 1)
-                    savefig("performance$(complex ? "_complex" : "").png")
 ################################################################
 #=
 """
     save(filename, configs)
 
-                end
 Save benchmark data
 # Examples
 ```julia
@@ -244,13 +238,68 @@ function load(filename::String)
     FileIO.load(filename, "config")
 end
 =#
+################################################################
+
+flatten(A) =reduce(hcat, A)
+uniqueflatten(A) =  unique(flatten(A))
+
+################################################################
+"""
+    bardim(Main.configs, :fun)
+
+Plots bars for each dimension set. It is assumed that dims sets for all the functions are the same.
+
+# Examples
+```julia
+bardim(configs)
+```
+"""
+function bardim(config::StructArray{Funb})
+
+    bar_width = 0.2
+    bar_text_font = Int64(bar_width*40)
+    xticks_font = Int64(bar_width*5)
+
+    numFun = length(config.fun)
+    _, numDims = numArgsDims(config.dims[1])
+
+    for iDim = 1:numDims
+
+        plt = plot()  # different figure for different dims
+
+        for iFun = 1:numFun
+
+            fname = [string(config.fun[iFun])]
+
+            for iType = 1:length(config.types[iFun])
+
+                x = [(iFun-1)+(bar_width*(iType-1))]
+
+                barText = Plots.text(string(config.types[iFun][iType]), pointsize = bar_text_font, :center, rotation = 90 )
+
+
+                    y = [config.median[iFun][iType][iDim]]
+                    # adding bar
+                    bar!(plt,
+                        x,
+                        y,
+                        # labels = string(config.types[iFun][iType][iDim])[1],
+                        legend = false,
+                        bar_width = bar_width,
+                        annotations = (x, y./2, barText),
+                        dpi = 600
+                    )
             end
         end
 
-    elseif xvariable == :dims
+        xticks!(0:numFun-1, string.(config.fun), rotation = 70, fontsize = xticks_font)
 
+        title!("Benchmark for array of size $(config.dims[1][1][iDim])")
+        ylabel!("Time [micro seconds]")
+
+        savefig("bench-$(config.dims[1][1][iDim]).png")
     end
-
 end
+
 
 end
