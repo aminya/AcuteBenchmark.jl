@@ -210,8 +210,6 @@ function benchmark!(config::StructArray{Funb})
 end
 
 benchmark!(config::Array{Funb}) = benchmark!(FunbArray(config))
-
-
-
+benchmark!(config::Funb) = benchmark!([config])
 
 end
