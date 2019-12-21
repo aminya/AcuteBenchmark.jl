@@ -224,8 +224,26 @@ benchmark!(config::Funb) = benchmark!([config])
                     ylabel!("Relative Speed (VML/Base)")
                     hline!([1], line=(4, :dash, 0.6, [:green]), labels = 1)
                     savefig("performance$(complex ? "_complex" : "").png")
+################################################################
+#=
+"""
+    save(filename, configs)
 
                 end
+Save benchmark data
+# Examples
+```julia
+save("benchmarkdata.jld2", configs)
+```
+"""
+function save(filename::String, config::StructArray{Funb})
+    JLD2.@save filename config
+end
+
+function load(filename::String)
+    FileIO.load(filename, "config")
+end
+=#
             end
         end
 
