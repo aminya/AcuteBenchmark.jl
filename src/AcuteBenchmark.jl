@@ -75,6 +75,7 @@ struct Funb
     inputs #::Vector{Vector{T}} where {T}
 
     results
+    median
 end
 
 Funb( fun, limits, types, dims) =  Funb( fun = fun, limits = limits, types = types, dims = dims)
@@ -85,6 +86,7 @@ function Funb(; fun, limits, types, dims)
         sets = Vector(undef, numTypes)
         inputs = Vector(undef, numTypes)
         results = Vector{Any}(undef, numTypes)
+        median = Vector{Any}(undef, numTypes)
 
         for iType = 1:numTypes
 
@@ -94,6 +96,7 @@ function Funb(; fun, limits, types, dims)
             inputs[iType] = Vector(undef, numDims)
 
             results[iType] = Vector{BenchmarkTools.Trial}(undef, numDims)
+            median[iType] = Vector{Float64}(undef, numDims)
 
             for iDim = 1:numDims
 
@@ -107,7 +110,7 @@ function Funb(; fun, limits, types, dims)
 
         end
 
-    return Funb( fun, limits, types, dims, sets, inputs, results)
+    return Funb( fun, limits, types, dims, sets, inputs, results, median)
 end
 ################################################################
 """
@@ -206,6 +209,7 @@ function benchmark!(config::StructArray{Funb})
                         config[iFun].results[iType][iDim] = @benchmark $fun.($inp...)
                     end
                 end
+                config[iFun].median[iType][iDim] = median(config[iFun].results[iType][iDim].times) / 1000 # micro seconds
             end
         end
     end
