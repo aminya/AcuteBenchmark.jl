@@ -7,7 +7,7 @@ using BenchmarkTools # for benchmark
 # using JLD2, FileIO # to save file
 # using DataFrames
 ################################################################
-export BenchConfig, BenchResult
+export Funb, FunbArray, BenchResult
 
 ################################################################
 function Distributions.Uniform(::Type{T}, a, b) where {T <: Real}
@@ -16,61 +16,53 @@ end
 
 ################################################################
 """
-    BenchConfig(;functions, sets, dims)
+    Funb(;fun, limits, types, dims)
 
-Creates random inputs for functions based on limits, types, and dims specified. Each of these arguments is a vector. So to benchmark each function, there should be a coresponding row in each vector (functions, limits, types, dims).
+Creates random inputs for a function based on limits, types, and dims specified.
 
 # Arguments
-- functions: vector of functions: Module.fun or :(Module.fun)
+- functions: function : Module.fun or :(Module.fun)
 - limits: min and max of possible values
 - types : type of elements
 - dims: Array of dimensions of the input vectors for each argument. Each column is for a new set of sizes, and each row is for different input arguments.
 
 # Examples
 ```julia
-using AcuteBenchmark
-
-config = BenchConfig(
-    functions = [sin,
-                atan,
-                *],
-    limits = [[(-1,1)],
-             [(-1,1), (-1,1)],
-             [(-1, 1), (-1, 1), (-1, 1)]],
-    types = fill([Float32, Float64], (3)),
-    dims = [ [100],
-             [100, 100],
-             [(100,100), (100,100)] ],
+config = Funb(
+    fun = sin,
+    limits = [(-1,1)],
+    types = [Float32, Float64],
+    dims = [100],
 )
 ```
+or just in a compact form:
+```julia
+config = Funb( sin, [(-1,1)], [Float32, Float64], [100])
+```
 """
-struct BenchConfig
+struct Funb
     # public
-    functions::Vector{Union{Function, Expr}}
-    limits::Vector{Vector{NTuple{2, T}}} where {T}
-    types::Vector{Vector{DataType}}
-    dims::Vector{Array{Union{Number, Tuple}}}
+    fun::T where {T<:Function}
+    limits::Vector{NTuple{2, T}} where {T}
+    types::Vector{DataType}
+    dims::Vector{T1} where {T1<:Union{T2, Tuple}} where {T2<:Number}
     # private
-    sets #::Vector{Vector{Vector{T}}} where {T<:Distribution} # vector of input sets for each function. Each set is an array of distributions
-    inputs #::Vector{Vector{Vector{T}}} where {T}
+    sets #::Vector{Vector{T}} where {T<:Distribution} # vector of input sets for each function. Each set is an array of distributions
+    inputs #::Vector{Vector{T}} where {T}
 end
 
-function BenchConfig(; functions, limits, types, dims)
+Funb( fun, limits, types, dims) =  Funb( fun = fun, limits = limits, types = types, dims = dims)
 
-    numFun = length(functions)
-    sets = Vector(undef, numFun) # [iFun][iType][iArgs]
-    inputs = Vector(undef, numFun) # [iFun][iType][iArgs]
+function Funb(; fun, limits, types, dims)
 
-    for iFun = 1:numFun
-
-        numTypes  = length(types[iFun])
-        sets[iFun] = Vector(undef, numTypes)
-        inputs[iFun] = Vector(undef, numTypes)
+        numTypes  = length(types)
+        sets = Vector(undef, numTypes)
+        inputs = Vector(undef, numTypes)
 
         for iType = 1:numTypes
 
-            dimsDims = ndims(dims[iFun])
-            dimsSize  = size(dims[iFun])
+            dimsDims = ndims(dims)
+            dimsSize  = size(dims)
 
             if dimsDims == 1
                 numArgs = dimsSize[1]
@@ -80,21 +72,24 @@ function BenchConfig(; functions, limits, types, dims)
                 numDims = dimsSize[2]
             end
 
-            sets[iFun][iType] = Vector(undef, numArgs)
+            sets[iType] = Vector(undef, numArgs)
 
-            inputs[iFun][iType] = Vector(undef, numDims)
+            inputs[iType] = Vector(undef, numDims)
 
             for iDim = 1:numDims
 
-                inputs[iFun][iType][iDim] = Vector(undef, numArgs) # {Array{types[iFun][iType]}}
+                inputs[iType][iDim] = Vector(undef, numArgs) # {Array{types[iType]}}
 
                 for iArg = 1:numArgs
-                    sets[iFun][iType][iArg] = Uniform(types[iFun][iType], limits[iFun][iArg]...)
-                    inputs[iFun][iType][iDim][iArg] = convert.(types[iFun][iType], rand(sets[iFun][iType][iArg], dims[iFun][iArg, iDim]) )
+                    sets[iType][iArg] = Uniform(types[iType], limits[iArg]...)
+                    inputs[iType][iDim][iArg] = convert.(types[iType], rand(sets[iType][iArg], dims[iArg, iDim]) )
                 end
             end
 
         end
+
+    return Funb( fun, limits, types, dims, sets, inputs)
+end
     end
     return BenchConfig( functions, limits, types, dims, sets, inputs)
 end
