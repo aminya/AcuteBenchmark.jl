@@ -3,11 +3,11 @@ module AcuteBenchmark
 using StructArrays # for type definitions
 using Distributions, Statistics # for random input generation
 using BenchmarkTools # for benchmark
-# using Plots # for plotting
-# using JLD2, FileIO # to save file
+using Plots # for plotting
+# import JLD2, FileIO # to save file
 # using DataFrames
 ################################################################
-export Funb, FunbArray, benchmark!
+export Funb, FunbArray, benchmark!, bardim
 
 ################################################################
 function Distributions.Uniform(::Type{T}, a, b) where {T <: Real}
