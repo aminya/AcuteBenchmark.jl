@@ -138,56 +138,41 @@ function FunbArray(;fun, limits, types, dims)
     return StructArray(configs)
 end
 
-struct BenchResult
-    # public
-    functions::Vector{Union{Function, Expr}}
-    types::Vector{Vector{DataType}}
-    dims::Vector{Vector{Union{Number, Tuple}}}
-    # private
-    result
-end
-
 """
-    BenchResult(config::BenchConfig)
+    benchmark(configs::StructArray{Funb}) # FunbArray{Funb}
+    benchmark(configs::Array{Funb})
 
-Performs the benchmarking on a given BenchConfig.
+Performs the benchmarking on a given Funb.
 
 # Examples
 ```julia
 using AcuteBenchmark
 
-config = BenchConfig(
-    functions = [sin,
-                atan,
-                *],
-    limits = [[(-1,1)],
-             [(-1,1), (-1,1)],
-             [(-1, 1), (-1, 1), (-1, 1)]],
-    types = fill([Float32, Float64], (3)),
-    dims = [ [100],
-             [100, 100],
-             [(100,100), (100,100)] ],
-)
+configs = FunbArray([
+    Funb( sin, [(-1,1)],[Float32, Float64], [100] );
+    Funb( atan, [(-1,1), (-1,1)],[Float32, Float64],[100, 100] );
+    Funb( *, [(-1, 1), (-1, 1), (-1, 1)], [Float32, Float64], [(100,100), (100,100)] );
+    ])
 
-BenchResult(config)
+result = benchmark(configs)
 ```
 """
-function BenchResult(config::BenchConfig)
+function benchmark(config::StructArray{Funb})
 
-    numFuns = length(config.functions)
+    numFuns = length(config.fun)
     result = Vector{Any}(undef, numFuns)
     # {BenchmarkTools.Trial}(undef, numFuns, numTypes, numDims)
 
-    for (iFun, fun) in enumerate(config.functions)
+    for (iFun, fun) in enumerate(config.fun)
 
         numTypes = length(config.types[iFun])
         result[iFun] = Vector{Any}(undef, numTypes)
 
         for (iType, type) in enumerate(config.types[iFun])
 
+            # Finding number of arguments and number of dimension sets
             dimsDims = ndims(config.dims[iFun])
             dimsSize  = size(config.dims[iFun])
-
             if dimsDims == 1
                 numArgs = dimsSize[1]
                 numDims = 1
@@ -202,6 +187,7 @@ function BenchResult(config::BenchConfig)
                 inp = config.inputs[iFun][iType][iDim]
 
                 println("Benchmarking $fun - $type - dimension set $iDim")
+
                 if numArgs == 1 # single argument function
                     if hasmethod(fun, (typeof(inp[1]),)) # check if array method exists
                         result[iFun][iType][iDim] = @benchmark $fun($inp[1])
@@ -218,7 +204,9 @@ function BenchResult(config::BenchConfig)
             end
         end
     end
-    return BenchResult(config.functions, config.types, config.dims, result)
+    return result
 end
+
+benchmark(configs::Array{Funb}) = benchmark(FunbArray(configs))
 
 end
