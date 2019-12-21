@@ -1,5 +1,6 @@
 module AcuteBenchmark
 
+using StructArrays # for type definitions
 using Distributions # for random input generation
 using BenchmarkTools # for benchmark
 # using Plots # for plotting
