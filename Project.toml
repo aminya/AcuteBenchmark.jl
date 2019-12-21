@@ -3,7 +3,11 @@ uuid = "8f64fb4b-d933-4fa5-a855-09390d771cf3"
 authors = ["Amin Yahyaabadi"]
 version = "0.1.0"
 
+[deps]
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 StructArrays = "09ab397b-f2b6-538f-b94a-2f83cf4a842a"
+
 [compat]
 julia = "1"
 
