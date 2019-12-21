@@ -20,7 +20,7 @@ Finding number of arguments and number of dimension sets
 
 # Examples
 ```julia
-numArgs, numDims = numArgsDims(in)
+numArgs, numDimsSets = numArgsDims(in)
 ```
 """
 function numArgsDims(in)
@@ -28,12 +28,12 @@ function numArgsDims(in)
     dimsSize  = size(in)
     if dimsDims == 1
         numArgs = dimsSize[1]
-        numDims = 1
+        numDimsSets = 1
     elseif dimsDims == 2
         numArgs = dimsSize[1]
-        numDims = dimsSize[2]
+        numDimsSets = dimsSize[2]
     end
-    return numArgs, numDims
+    return numArgs, numDimsSets
 end
 ################################################################
 """
@@ -90,21 +90,21 @@ function Funb(; fun, limits, types, dims)
 
         for iType = 1:numTypes
 
-            numArgs, numDims = numArgsDims(dims)
+            numArgs, numDimsSets = numArgsDims(dims)
 
             sets[iType] = Vector(undef, numArgs)
-            inputs[iType] = Vector(undef, numDims)
+            inputs[iType] = Vector(undef, numDimsSets)
 
-            results[iType] = Vector{BenchmarkTools.Trial}(undef, numDims)
-            median[iType] = Vector{Float64}(undef, numDims)
+            results[iType] = Vector{BenchmarkTools.Trial}(undef, numDimsSets)
+            median[iType] = Vector{Float64}(undef, numDimsSets)
 
-            for iDim = 1:numDims
+            for iDimSet = 1:numDimsSets
 
-                inputs[iType][iDim] = Vector(undef, numArgs) # {Array{types[iType]}}
+                inputs[iType][iDimSet] = Vector(undef, numArgs) # {Array{types[iType]}}
 
                 for iArg = 1:numArgs
                     sets[iType][iArg] = Uniform(types[iType], limits[iArg]...)
-                    inputs[iType][iDim][iArg] = convert.(types[iType], rand(sets[iType][iArg], dims[iArg, iDim]) )
+                    inputs[iType][iDimSet][iArg] = convert.(types[iType], rand(sets[iType][iArg], dims[iArg, iDimSet]) )
                 end
             end
 
@@ -189,27 +189,27 @@ function benchmark!(config::StructArray{Funb})
 
         for (iType, type) in enumerate(config.types[iFun])
 
-            numArgs, numDims = numArgsDims(config.dims[iFun])
+            numArgs, numDimsSets = numArgsDims(config.dims[iFun])
 
-            for iDim = 1:numDims
-                inp = config.inputs[iFun][iType][iDim]
+            for iDimSet = 1:numDimsSets
+                inp = config.inputs[iFun][iType][iDimSet]
 
-                println("Benchmarking $fun - $type - dimension set $iDim")
+                println("Benchmarking $fun - $type - dimension set $iDimSet")
 
                 if numArgs == 1 # single argument function
                     if hasmethod(fun, (typeof(inp[1]),)) # check if array method exists
-                        config[iFun].results[iType][iDim] = @benchmark $fun($inp[1])
+                        config[iFun].results[iType][iDimSet] = @benchmark $fun($inp[1])
                     else # broadcast
-                        config[iFun].results[iType][iDim] = @benchmark $fun.($inp[1])
+                        config[iFun].results[iType][iDimSet] = @benchmark $fun.($inp[1])
                     end
                 else
                     if hasmethod(fun, Tuple(typeof.(inp))) # check if array method exists
-                        config[iFun].results[iType][iDim] = @benchmark $fun($inp...)
+                        config[iFun].results[iType][iDimSet] = @benchmark $fun($inp...)
                     else # broadcast
-                        config[iFun].results[iType][iDim] = @benchmark $fun.($inp...)
+                        config[iFun].results[iType][iDimSet] = @benchmark $fun.($inp...)
                     end
                 end
-                config[iFun].median[iType][iDim] = median(config[iFun].results[iType][iDim].times) / 1000 # micro seconds
+                config[iFun].median[iType][iDimSet] = median(config[iFun].results[iType][iDimSet].times) / 1000 # micro seconds
             end
         end
     end
@@ -244,10 +244,21 @@ flatten(A) =reduce(hcat, A)
 uniqueflatten(A) =  unique(flatten(A))
 
 ################################################################
+
+function stringMatrix(A)
+    io = IOBuffer();
+    # Base.print_matrix(io, A)
+    Base.print_matrix(io, permutedims(A)) # transpose is better in this case
+    str = read(seekstart(io), String)
+    return str
+end
+################################################################
 """
     bardim(Main.configs, :fun)
 
-Plots bars for each dimension set. It is assumed that dims sets for all the functions are the same.
+Plots bars for each dimension set.
+
+It is assumed that number of dimension sets are the same.
 
 # Examples
 ```julia
@@ -258,12 +269,13 @@ function bardim(config::StructArray{Funb})
 
     bar_width = 0.2
     bar_text_font = Int64(bar_width*40)
+    dim_text_font = Int64(bar_width*30)
     xticks_font = Int64(bar_width*5)
 
     numFun = length(config.fun)
-    _, numDims = numArgsDims(config.dims[1])
+    _, numDimsSets = numArgsDims(config.dims[1])
 
-    for iDim = 1:numDims
+    for iDimSet = 1:numDimsSets
 
         plt = plot()  # different figure for different dims
 
@@ -277,16 +289,18 @@ function bardim(config::StructArray{Funb})
 
                 barText = Plots.text(string(config.types[iFun][iType]), pointsize = bar_text_font, :center, rotation = 90 )
 
+                dimText = Plots.text(stringMatrix(config.dims[iFun][:,iDimSet]), pointsize = dim_text_font, :center)
 
-                    y = [config.median[iFun][iType][iDim]]
+
+                    y = [config.median[iFun][iType][iDimSet]]
                     # adding bar
                     bar!(plt,
                         x,
                         y,
-                        # labels = string(config.types[iFun][iType][iDim])[1],
+                        # labels = string(config.types[iFun][iType][iDimSet])[1],
                         legend = false,
                         bar_width = bar_width,
-                        annotations = (x, y./2, barText),
+                        annotations = ([x, x], [y./2, y .+ bar_width/8], [barText, dimText]),
                         dpi = 600
                     )
             end
@@ -294,10 +308,10 @@ function bardim(config::StructArray{Funb})
 
         xticks!(0:numFun-1, string.(config.fun), rotation = 70, fontsize = xticks_font)
 
-        title!("Benchmark for array of size $(config.dims[1][1][iDim])")
+        title!("Benchmark")
         ylabel!("Time [micro seconds]")
 
-        savefig("bench-$(config.dims[1][1][iDim]).png")
+        savefig("bench-dims-set$iDimSet.png")
     end
 end
 
