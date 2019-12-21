@@ -14,6 +14,27 @@ function Distributions.Uniform(::Type{T}, a, b) where {T <: Real}
     return Uniform(T(a), T(b))
 end
 
+"""
+    numArgsDims(in)
+Finding number of arguments and number of dimension sets
+
+# Examples
+```julia
+numArgs, numDims = numArgsDims(in)
+```
+"""
+function numArgsDims(in)
+    dimsDims = ndims(in)
+    dimsSize  = size(in)
+    if dimsDims == 1
+        numArgs = dimsSize[1]
+        numDims = 1
+    elseif dimsDims == 2
+        numArgs = dimsSize[1]
+        numDims = dimsSize[2]
+    end
+    return numArgs, numDims
+end
 ################################################################
 """
     Funb(;fun, limits, types, dims)
@@ -67,16 +88,7 @@ function Funb(; fun, limits, types, dims)
 
         for iType = 1:numTypes
 
-            dimsDims = ndims(dims)
-            dimsSize  = size(dims)
-
-            if dimsDims == 1
-                numArgs = dimsSize[1]
-                numDims = 1
-            elseif dimsDims == 2
-                numArgs = dimsSize[1]
-                numDims = dimsSize[2]
-            end
+            numArgs, numDims = numArgsDims(dims)
 
             sets[iType] = Vector(undef, numArgs)
             inputs[iType] = Vector(undef, numDims)
@@ -174,16 +186,7 @@ function benchmark!(config::StructArray{Funb})
 
         for (iType, type) in enumerate(config.types[iFun])
 
-            # Finding number of arguments and number of dimension sets
-            dimsDims = ndims(config.dims[iFun])
-            dimsSize  = size(config.dims[iFun])
-            if dimsDims == 1
-                numArgs = dimsSize[1]
-                numDims = 1
-            elseif dimsDims == 2
-                numArgs = dimsSize[1]
-                numDims = dimsSize[2]
-            end
+            numArgs, numDims = numArgsDims(config.dims[iFun])
 
             for iDim = 1:numDims
                 inp = config.inputs[iFun][iType][iDim]
