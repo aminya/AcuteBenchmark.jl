@@ -33,6 +33,13 @@ configs = FunbArray([
 benchmark!(configs)
 ```
 
+Plot the benchmark result using:
+```julia
+bardim(configs)
+```
+
+![bench-dims-set1](bench-dims-set1.png)
+
 
 ```@index
 ```
