@@ -3,7 +3,7 @@ module AcuteBenchmark
 using StructArrays # for type definitions
 using Distributions, Statistics # for random input generation
 using BenchmarkTools # for benchmark
-using Plots # for plotting
+using Plots, Colors, ColorTypes # for plotting
 # import JLD2, FileIO # to save file
 # using DataFrames
 ################################################################
@@ -243,6 +243,13 @@ end
 flatten(A) =reduce(hcat, A)
 uniqueflatten(A) =  unique(flatten(A))
 
+function invert(c::RGB, distinguish::Bool = false)
+     cout = RGB{Float64}(1-c.r,1-c.g,1-c.b)
+     if distinguish && cout == c #gray
+         cout = RGB{Float64}(0,0,0)
+     end
+     return cout
+end
 ################################################################
 
 function stringMatrix(A)
