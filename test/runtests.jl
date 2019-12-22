@@ -13,4 +13,6 @@ cd(@__DIR__)
 
     bardim(configs)
 
+    bardim(configs, true)
+
 end
