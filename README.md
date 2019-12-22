@@ -39,3 +39,10 @@ Plot the benchmark result using:
 bardim(configs)
 ```
 ![bench-dims-set1](test/bench-dims-set1.png)
+
+To have a same color for the same types use:
+```julia
+bardim(configs, true)
+```
+
+![bench-dims-set1-unique](test/bench-dims-set1-unique.png)

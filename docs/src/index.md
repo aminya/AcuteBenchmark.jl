@@ -4,6 +4,7 @@ CurrentModule = AcuteBenchmark
 
 # AcuteBenchmark
 
+
 AcuteBenchmark allows you to benchmark functions that get Arrays as their input.
 
 Creates random inputs for a function based on limits, types, and dims specified.
@@ -37,8 +38,15 @@ Plot the benchmark result using:
 ```julia
 bardim(configs)
 ```
-
 ![bench-dims-set1](bench-dims-set1.png)
+
+To have a same color for the same types use:
+```julia
+bardim(configs, true)
+```
+
+![bench-dims-set1-unique](bench-dims-set1-unique.png)
+
 
 
 ```@index
