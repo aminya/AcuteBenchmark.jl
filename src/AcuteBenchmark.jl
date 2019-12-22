@@ -253,12 +253,9 @@ end
 ################################################################
 
 function stringMatrix(A)
-    io = IOBuffer();
-    # Base.print_matrix(io, A)
-    Base.print_matrix(io, permutedims(A)) # transpose is better in this case
-    str = read(seekstart(io), String)
-    return str
+    sprint(Base.print_matrix, A)
 end
+
 ################################################################
 """
     bardim(Main.configs, :fun)
