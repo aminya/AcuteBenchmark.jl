@@ -10,11 +10,11 @@ save("benchmarkdata.jld2", configs)
 ```
 """
 function save(filename::String, config::StructArray{Funb})
-    JLD2.@save filename config
+    JLD2.@save(filename, config)
 end
 
-function load(filename::String)
-    FileIO.load(filename, "config")
+function load(filename::String, varname::String = "config")
+    FileIO.load(filename, varname)
 end
 
 ################################################################
