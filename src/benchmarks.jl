@@ -63,7 +63,7 @@ struct Funb
     fun::T where {T<:Function}
     limits::Vector{NTuple{2, T}} where {T}
     types::Vector{DataType}
-    dims::Vector{T1} where {T1<:Union{T2, Tuple}} where {T2<:Number}
+    dims::VecOrMat{T1} where {T1<:Union{T2, Tuple}} where {T2<:Number}
 
     # private - calculated
 
