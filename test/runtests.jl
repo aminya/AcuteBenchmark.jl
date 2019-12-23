@@ -8,11 +8,16 @@ cd(@__DIR__)
         Funb( atan, [(-1,1), (-1,1)],[Float32, Float64],[10, 10] );
         Funb( *, [(-1, 1), (-1, 1), (-1, 1)], [Float32, Float64], [(10,10), (10,10)] );
         ])
+     
+    # AcuteBenchmark.save("a.jld2",configs)
+    # AcuteBenchmark.load("a.jld2","configs")
 
     benchmark!(configs)
 
-    bardim(configs)
+    bar(configs)
 
-    bardim(configs, true)
+    bar(configs, true)
+
+    bar(configs => configs, true)
 
 end
