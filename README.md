@@ -36,13 +36,18 @@ benchmark!(configs)
 
 Plot the benchmark result using:
 ```julia
-bardim(configs)
+bar(configs)
 ```
 ![bench-dims-set1](test/bench-dims-set1.png)
 
 To have a same color for the same types use:
 ```julia
-bardim(configs, true)
+bar(configs, true)
 ```
-
 ![bench-dims-set1-unique](test/bench-dims-set1-unique.png)
+
+To plot the relative speed, pass a pair of configs:
+```julia
+bar(configs => configs, true)
+```
+![bench-dims-set1-relative](test/bench-dims-set1-relative.png)

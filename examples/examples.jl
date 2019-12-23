@@ -11,6 +11,8 @@ AcuteBenchmark.load("a.jld2","configs")
 
 benchmark!(configs)
 
-bardim(configs)
+bar(configs)
 
-bardim(configs, true)
+bar(configs, true)
+
+bar(configs => configs, true)
