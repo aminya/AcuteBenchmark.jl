@@ -51,3 +51,11 @@ To plot the relative speed, pass a pair of configs:
 bar(configs => configs, true)
 ```
 ![bench-dims-set1-relative](test/bench-dims-set1-relative.png)
+
+To plot how the function acts over different dimension sets:
+```julia
+configs2 = Funb( sin, [(-1,1)],[Float32, Float64], [10 20 30 40] );
+benchmark!(configs2)
+dimplot(configs2)
+```
+![bench-sin](test/bench-sin.png)
