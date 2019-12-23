@@ -143,6 +143,7 @@ configs = FunbArray(
 ```
 """
 FunbArray(configs::Array{Funb}) = StructArray(configs)
+FunbArray(configs::Funb) = StructArray([configs])
 
 function FunbArray(;fun, limits, types, dims)
 
@@ -212,5 +213,4 @@ function benchmark!(config::StructArray{Funb})
     return config
 end
 
-benchmark!(config::Array{Funb}) = benchmark!(FunbArray(config))
-benchmark!(config::Funb) = benchmark!([config])
+benchmark!(config::Union{Funb, Array{Funb}}) = benchmark!(FunbArray(config))

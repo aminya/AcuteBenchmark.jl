@@ -103,6 +103,8 @@ function bar(config::StructArray{Funb}, uniqueType::Bool = false)
     end
 end
 
+bar(config::Funb, uniqueType::Bool = false) = bar(FunbArray(config), uniqueType)
+
 """
     bar(config::Pair{StructArray{Funb}}, uniqueType::Bool = false)
 
