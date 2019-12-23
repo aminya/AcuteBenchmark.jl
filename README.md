@@ -18,7 +18,7 @@ config = Funb(
 ```
 or just in a compact form:
 ```julia
-config = Funb( sin, [(-1,1)], [Float32, Float64], [100])
+config = Funb( sin, [(-1,1)], [Float32, Float64], [10])
 ```
 
 use benchmark! to run the benchmark:
@@ -26,9 +26,9 @@ use benchmark! to run the benchmark:
 using AcuteBenchmark
 
 configs = FunbArray([
-    Funb( sin, [(-1,1)],[Float32, Float64], [100] );
-    Funb( atan, [(-1,1), (-1,1)],[Float32, Float64],[100, 100] );
-    Funb( *, [(-1, 1), (-1, 1), (-1, 1)], [Float32, Float64], [(100,100), (100,100)] );
+    Funb( sin, [(-1,1)],[Float32, Float64], [10] );
+    Funb( atan, [(-1,1), (-1,1)],[Float32, Float64],[10, 10] );
+    Funb( *, [(-1, 1), (-1, 1), (-1, 1)], [Float32, Float64], [(10,10), (10,10)] );
     ])
 
 benchmark!(configs)
