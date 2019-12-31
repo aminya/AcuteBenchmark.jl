@@ -258,9 +258,9 @@ xticks_font = Int64(bar_width*5)
 numFun = length(config.fun)
 _, numDimsSets = numArgsDims(config.dims[1])
 
-    plt = plot()  # different figure for different dims
-
     for iFun = 1:numFun
+
+        plt = plot()  # different figure for different dims
 
         fname = [string(config.fun[iFun])]
 
