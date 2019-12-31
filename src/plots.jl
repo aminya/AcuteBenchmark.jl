@@ -21,13 +21,13 @@ end
 
 ################################################################
 """
-    bar(config::StructArray{Funb}, uniqueType::Bool = false, annotations::Bool = true)
+    bar(config::StructArray{Funb}, uniqueType::Bool = false, dimAnnotation::Bool = true)
 
 Plots bars for each dimension set.
 
 It is assumed that number of dimension sets are the same.
 
-To have a same color for the same types, set true as the 2nd argument. To turn off annotations pass false as the 3rd argument.
+To have a same color for the same types, set true as the 2nd argument. To turn off dimension annotations pass false as the 3rd argument.
 
 # Examples
 ```julia
@@ -35,7 +35,7 @@ bar(configs)
 bar(configs, true, true)
 ```
 """
-function bar(config::StructArray{Funb}, uniqueType::Bool = false, annotations::Bool = true)
+function bar(config::StructArray{Funb}, uniqueType::Bool = false, dimAnnotation::Bool = true)
 
     numFun = length(config.fun)
 
@@ -75,20 +75,21 @@ function bar(config::StructArray{Funb}, uniqueType::Bool = false, annotations::B
                         labels = ""
                     end
                     legend = :topright
+                    barText = ""
+
                 else
                     fillcolor = :auto
                     type_text_color = :black
+
+                    barText = Plots.text(string(config.types[iFun][iType]), pointsize = bar_text_font, :center, rotation = 90, color = type_text_color )
 
                     labels = ""
                     legend = false
                 end
 
-                if annotations
-                    barText = Plots.text(string(config.types[iFun][iType]), pointsize = bar_text_font, :center, rotation = 90, color = type_text_color )
-
+                if dimAnnotation
                     dimText = Plots.text(stringMatrix(config.dims[iFun][:,iDimSet]), pointsize = dim_text_font, :center)
                 else
-                    barText = ""
                     dimText = ""
                 end
 
@@ -124,7 +125,7 @@ end
 bar(config::Funb, uniqueType::Bool = false, annotations::Bool = true) = bar(FunbArray(config), uniqueType, annotations)
 
 """
-    bar(config::Pair{StructArray{Funb}}, uniqueType::Bool = false, annotations::Bool = false)
+    bar(config::Pair{StructArray{Funb}}, uniqueType::Bool = false, dimAnnotation::Bool = false)
 
 Gets a pair of StructArrays and calculates relative speed of coresponding elements and plots them.
 
@@ -135,7 +136,7 @@ Uses the first element of the pair for the configurations and only uses runtimes
 bar(configs => configs, true, true)
 ```
 """
-function bar(config::Pair{StructArray{Funb,T1,T2,T3}, StructArray{Funb,T1,T2,T3}}, uniqueType::Bool = false, annotations::Bool = false) where {T1,T2,T3}
+function bar(config::Pair{StructArray{Funb,T1,T2,T3}, StructArray{Funb,T1,T2,T3}}, uniqueType::Bool = false, dimAnnotation::Bool = false) where {T1,T2,T3}
 
     bar_width = 0.2
     bar_text_font = Int64(bar_width*40)
@@ -174,20 +175,20 @@ function bar(config::Pair{StructArray{Funb,T1,T2,T3}, StructArray{Funb,T1,T2,T3}
                         labels = ""
                     end
                     legend = :topright
+                    barText = ""
                 else
                     fillcolor = :auto
                     type_text_color = :black
-                    
+
+                    barText = Plots.text(string(config[1].types[iFun][iType]), pointsize = bar_text_font, :center, rotation = 90, color = type_text_color )
+
                     labels = ""
                     legend = false
                 end
 
-                if annotations
-                    barText = Plots.text(string(config[1].types[iFun][iType]), pointsize = bar_text_font, :center, rotation = 90, color = type_text_color )
-
+                if dimAnnotation
                     dimText = Plots.text(stringMatrix(config[1].dims[iFun][:,iDimSet]), pointsize = dim_text_font, :center)
                 else
-                    barText = ""
                     dimText = ""
                 end
 
@@ -208,8 +209,8 @@ function bar(config::Pair{StructArray{Funb,T1,T2,T3}, StructArray{Funb,T1,T2,T3}
 
         xticks!(0:numFun-1, string.(config[1].fun), rotation = 70, fontsize = xticks_font)
 
-        # title!("Benchmark")
-        ylabel!("Relative Speed of 1/2")
+        title!("Dimension set $iDimSet")
+        ylabel!("Relative Speed (1/2)")
 
         savefig("bench-dims-set$iDimSet-relative.png")
     end
