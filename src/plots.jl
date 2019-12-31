@@ -37,7 +37,9 @@ bar(configs, true, true)
 """
 function bar(config::StructArray{Funb}, uniqueType::Bool = false, annotations::Bool = true)
 
-    bar_width = 0.2
+    numFun = length(config.fun)
+
+    bar_width = numFun/3.0*0.2
     bar_text_font = Int64(bar_width*40)
     dim_text_font = Int64(bar_width*30)
     xticks_font = Int64(bar_width*5)
@@ -48,7 +50,6 @@ function bar(config::StructArray{Funb}, uniqueType::Bool = false, annotations::B
         colors = distinguishable_colors(numUniqueTypes, [RGB(1,1,1)])
     end
 
-    numFun = length(config.fun)
     _, numDimsSets = numArgsDims(config.dims[1])
 
     for iDimSet = 1:numDimsSets
@@ -65,10 +66,21 @@ function bar(config::StructArray{Funb}, uniqueType::Bool = false, annotations::B
                 if uniqueType
                     iTypeUnique = findfirst(x -> x==config.types[iFun][iType], uniqueTypes)
                     fillcolor = colors[iTypeUnique]
-                    type_text_color = invert(fillcolor, true)
+                    type_text_color = invert(fillcolor, true)'
+
+                    # labels
+                    if iFun == 1
+                        labels = string(config[1].types[iFun][iType])
+                    else
+                        labels = ""
+                    end
+                    legend = :topright
                 else
                     fillcolor = :auto
                     type_text_color = :black
+
+                    labels = ""
+                    legend = false
                 end
 
                 if annotations
@@ -85,8 +97,8 @@ function bar(config::StructArray{Funb}, uniqueType::Bool = false, annotations::B
                 bar!(plt,
                     x,
                     y,
-                    # labels = string(config.types[iFun][iType][iDimSet])[1],
-                    legend = false,
+                    labels = labels,
+                    legend = legend,
                     fillcolor = fillcolor,
                     bar_width = bar_width,
                     annotations = ([x, x], [y./2, y .+ bar_width/8], [barText, dimText]),
@@ -112,7 +124,7 @@ end
 bar(config::Funb, uniqueType::Bool = false, annotations::Bool = true) = bar(FunbArray(config), uniqueType, annotations)
 
 """
-    bar(config::Pair{StructArray{Funb}}, uniqueType::Bool = false, annotations::Bool = true)
+    bar(config::Pair{StructArray{Funb}}, uniqueType::Bool = false, annotations::Bool = false)
 
 Gets a pair of StructArrays and calculates relative speed of coresponding elements and plots them.
 
@@ -123,7 +135,7 @@ Uses the first element of the pair for the configurations and only uses runtimes
 bar(configs => configs, true, true)
 ```
 """
-function bar(config::Pair{StructArray{Funb,T1,T2,T3}, StructArray{Funb,T1,T2,T3}}, uniqueType::Bool = false, annotations::Bool = true) where {T1,T2,T3}
+function bar(config::Pair{StructArray{Funb,T1,T2,T3}, StructArray{Funb,T1,T2,T3}}, uniqueType::Bool = false, annotations::Bool = false) where {T1,T2,T3}
 
     bar_width = 0.2
     bar_text_font = Int64(bar_width*40)
@@ -154,9 +166,20 @@ function bar(config::Pair{StructArray{Funb,T1,T2,T3}, StructArray{Funb,T1,T2,T3}
                     iTypeUnique = findfirst(x -> x==config[1].types[iFun][iType], uniqueTypes)
                     fillcolor = colors[iTypeUnique]
                     type_text_color = invert(fillcolor, true)
+
+                    # labels
+                    if iFun == 1
+                        labels = string(config[1].types[iFun][iType])
+                    else
+                        labels = ""
+                    end
+                    legend = :topright
                 else
                     fillcolor = :auto
                     type_text_color = :black
+                    
+                    labels = ""
+                    legend = false
                 end
 
                 if annotations
@@ -173,8 +196,8 @@ function bar(config::Pair{StructArray{Funb,T1,T2,T3}, StructArray{Funb,T1,T2,T3}
                 bar!(plt,
                     x,
                     y,
-                    # labels = string(config[1].types[iFun][iType][iDimSet])[1],
-                    legend = false,
+                    labels = labels,
+                    legend = legend,
                     fillcolor = fillcolor,
                     bar_width = bar_width,
                     annotations = ([x, x], [y./2, y .+ bar_width/8], [barText, dimText]),
