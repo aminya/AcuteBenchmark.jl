@@ -13,13 +13,11 @@ benchmark!(configs)
 
 bar(configs)
 
-bar(configs, true)
+bar(configs, uniqueType=true)
 
-# unique Type
-bar(configs => configs, true)
+bar(configs => configs, uniqueType=true)
 
-# unique Type, false Annotation, Unique Dim
-bar(configs => configs, true, false, true)
+bar(configs => configs, uniqueType=true, dimAnnotation=false, uniqueDim=true)
 
 configs2 = Funb( sin, [(-1,1)],[Float32, Float64], [10 20 30 40] );
 
