@@ -61,7 +61,7 @@ struct Funb
 
     # public
     fun::T where {T<:Function}
-    limits::Vector{NTuple{2, T}} where {T}
+    limits::Vector{Tuple{T1,T2}} where {T1,T2}
     types::Vector{DataType}
     dims::VecOrMat{T1} where {T1<:Union{T2, Tuple}} where {T2<:Number}
 
