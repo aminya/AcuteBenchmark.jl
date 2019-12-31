@@ -289,3 +289,58 @@ _, numDimsSets = numArgsDims(config.dims[1])
 end
 
 dimplot(config::Funb) = dimplot(FunbArray(config))
+
+"""
+    dimplot(config::Vector{StructArray{Funb}}, labels::Vector{String})
+
+By passing a vector different benchmark sets can be grouped together to be shown in a single plot.
+"""
+function dimplot(config::Vector{StructArray{Funb,T1,T2,T3}}, labels::Vector{String}) where {T1,T2,T3}
+
+mkpath("dimplot")
+numLabels = length(config)
+
+bar_width = 0.2
+bar_text_font = Int64(bar_width*40)
+dim_text_font = Int64(bar_width*30)
+xticks_font = Int64(bar_width*5)
+
+numFun = length(config[1].fun)
+_, numDimsSets = numArgsDims(config[1].dims[1])
+
+    for iFun = 1:numFun
+
+        fname = [string(config[1].fun[iFun])]
+
+        for iType = 1:length(config[1].types[iFun])
+
+            plt = plot()  # different figure for different dims
+
+            x = 1:numDimsSets
+            xticks = string.(dropdims(flatten([config[1].dims[iFun][:,iDimSet] for iDimSet = 1:numDimsSets]), dims=1))
+
+            for iLabel = 1:numLabels
+
+                y = [config[iLabel].median[iFun][iType][iDimSet] for iDimSet = 1:numDimsSets]
+
+                # adding bar
+                plot!(plt,
+                    x,
+                    y,
+                    # labels = string(config[1].types[iFun][iType]),
+                    labels = labels[iLabel],
+                    legend = :right,
+                    dpi = 600
+                )
+                xticks!(x, xticks, fontsize = xticks_font)
+
+            end
+
+            title!("$(fname[1]) - Type $(config[1].types[iFun][iType])")
+            xlabel!("Dimension")
+            ylabel!("Time [micro seconds]")
+
+            savefig("dimplot/bench-$(fname[1])-Type-$(config[1].types[iFun][iType]).png")
+        end
+    end
+end
