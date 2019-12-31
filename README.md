@@ -7,7 +7,6 @@
 
 AcuteBenchmark allows you to benchmark functions that get Arrays as their input.
 
-# User packages
 It is used inside [IntelVectorMath](https://github.com/JuliaMath/VML.jl) for benchmarking its functions.
 
 Creates random inputs for a function based on limits, types, and dims specified.
