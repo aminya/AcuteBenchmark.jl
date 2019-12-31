@@ -17,6 +17,7 @@ bar(configs, true)
 
 bar(configs => configs, true)
 
+bar(configs => configs, true, false)
 
 configs2 = Funb( sin, [(-1,1)],[Float32, Float64], [10 20 30 40] );
 

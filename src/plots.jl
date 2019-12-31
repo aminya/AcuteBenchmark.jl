@@ -21,21 +21,21 @@ end
 
 ################################################################
 """
-    bar(config::StructArray{Funb}, uniqueType::Bool = false)
+    bar(config::StructArray{Funb}, uniqueType::Bool = false, annotations::Bool = true)
 
 Plots bars for each dimension set.
 
 It is assumed that number of dimension sets are the same.
 
-To have a same color for the same types, set true as the 2nd argument
+To have a same color for the same types, set true as the 2nd argument. To turn off annotations pass false as the 3rd argument.
 
 # Examples
 ```julia
 bar(configs)
-bar(configs, true)
+bar(configs, true, true)
 ```
 """
-function bar(config::StructArray{Funb}, uniqueType::Bool = false)
+function bar(config::StructArray{Funb}, uniqueType::Bool = false, annotations::Bool = true)
 
     bar_width = 0.2
     bar_text_font = Int64(bar_width*40)
@@ -71,10 +71,14 @@ function bar(config::StructArray{Funb}, uniqueType::Bool = false)
                     type_text_color = :black
                 end
 
-                barText = Plots.text(string(config.types[iFun][iType]), pointsize = bar_text_font, :center, rotation = 90, color = type_text_color )
+                if annotations
+                    barText = Plots.text(string(config.types[iFun][iType]), pointsize = bar_text_font, :center, rotation = 90, color = type_text_color )
 
-                dimText = Plots.text(stringMatrix(config.dims[iFun][:,iDimSet]), pointsize = dim_text_font, :center)
-
+                    dimText = Plots.text(stringMatrix(config.dims[iFun][:,iDimSet]), pointsize = dim_text_font, :center)
+                else
+                    barText = ""
+                    dimText = ""
+                end
 
                 y = [config.median[iFun][iType][iDimSet]]
                 # adding bar
@@ -95,6 +99,7 @@ function bar(config::StructArray{Funb}, uniqueType::Bool = false)
 
         # title!("Benchmark")
         ylabel!("Time [micro seconds]")
+        hline!([1], line=(4, :dash, 0.6, [:green]), labels = 1)
         if uniqueType
             filename = "bench-dims-set$iDimSet-unique.png"
         else
@@ -104,10 +109,10 @@ function bar(config::StructArray{Funb}, uniqueType::Bool = false)
     end
 end
 
-bar(config::Funb, uniqueType::Bool = false) = bar(FunbArray(config), uniqueType)
+bar(config::Funb, uniqueType::Bool = false, annotations::Bool = true) = bar(FunbArray(config), uniqueType, annotations)
 
 """
-    bar(config::Pair{StructArray{Funb}}, uniqueType::Bool = false)
+    bar(config::Pair{StructArray{Funb}}, uniqueType::Bool = false, annotations::Bool = true)
 
 Gets a pair of StructArrays and calculates relative speed of coresponding elements and plots them.
 
@@ -115,10 +120,10 @@ Uses the first element of the pair for the configurations and only uses runtimes
 
 1st element runtimes / 2nd element runtimes
 ```julia
-bar(configs => configs, true)
+bar(configs => configs, true, true)
 ```
 """
-function bar(config::Pair{StructArray{Funb,T1,T2,T3}, StructArray{Funb,T1,T2,T3}}, uniqueType::Bool = false) where {T1,T2,T3}
+function bar(config::Pair{StructArray{Funb,T1,T2,T3}, StructArray{Funb,T1,T2,T3}}, uniqueType::Bool = false, annotations::Bool = true) where {T1,T2,T3}
 
     bar_width = 0.2
     bar_text_font = Int64(bar_width*40)
@@ -154,10 +159,14 @@ function bar(config::Pair{StructArray{Funb,T1,T2,T3}, StructArray{Funb,T1,T2,T3}
                     type_text_color = :black
                 end
 
-                barText = Plots.text(string(config[1].types[iFun][iType]), pointsize = bar_text_font, :center, rotation = 90, color = type_text_color )
+                if annotations
+                    barText = Plots.text(string(config[1].types[iFun][iType]), pointsize = bar_text_font, :center, rotation = 90, color = type_text_color )
 
-                dimText = Plots.text(stringMatrix(config[1].dims[iFun][:,iDimSet]), pointsize = dim_text_font, :center)
-
+                    dimText = Plots.text(stringMatrix(config[1].dims[iFun][:,iDimSet]), pointsize = dim_text_font, :center)
+                else
+                    barText = ""
+                    dimText = ""
+                end
 
                 y = [config[1].median[iFun][iType][iDimSet] / config[2].median[iFun][iType][iDimSet]]
                 # adding bar
