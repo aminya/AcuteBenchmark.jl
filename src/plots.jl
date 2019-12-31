@@ -233,8 +233,9 @@ function bar(config::Pair{StructArray{Funb,T1,T2,T3}, StructArray{Funb,T1,T2,T3}
 
         title!(titleText)
         ylabel!("Relative Speed ($(configName[2])/$(configName[1]))")
-        hline!([1], line=(4, :dash, 0.6, [:green]), labels = 1)
-
+        if uniqueType
+            hline!([1], line=(4, :dash, 0.6, [:green]), labels = 1)
+        end
         savefig("bar/bench-dims-set$iDimSet-relative.png")
     end
 end
