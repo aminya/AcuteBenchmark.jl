@@ -272,7 +272,7 @@ _, numDimsSets = numArgsDims(config.dims[1])
         for iType = 1:length(config.types[iFun])
 
             x = 1:numDimsSets
-            xticks = string.(dropdims(flatten([config.dims[iFun][:,iDimSet] for iDimSet = 1:numDimsSets]), dims=1))
+            xticks = string.(dropdims(flatten([config.dims[iFun][1,iDimSet] for iDimSet = 1:numDimsSets]), dims=1))
             y = [config.median[iFun][iType][iDimSet] for iDimSet = 1:numDimsSets]
             # adding bar
             plot!(plt,
@@ -322,7 +322,7 @@ _, numDimsSets = numArgsDims(config[1].dims[1])
             plt = plot()  # different figure for different dims
 
             x = 1:numDimsSets
-            xticks = string.(dropdims(flatten([config[1].dims[iFun][:,iDimSet] for iDimSet = 1:numDimsSets]), dims=1))
+            xticks = string.(dropdims(flatten([config.dims[iFun][1,iDimSet] for iDimSet = 1:numDimsSets]), dims=1))
 
             for iLabel = 1:numLabels
 
