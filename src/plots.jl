@@ -37,6 +37,8 @@ bar(configs, true, true)
 """
 function bar(config::StructArray{Funb}, uniqueType::Bool = false, dimAnnotation::Bool = true, uniqueDim::Bool = false)
 
+    mkpath("bar")
+
     local titleText
 
     numFun = length(config.fun)
@@ -122,9 +124,9 @@ function bar(config::StructArray{Funb}, uniqueType::Bool = false, dimAnnotation:
         ylabel!("Time [micro seconds]")
         hline!([1], line=(4, :dash, 0.6, [:green]), labels = 1)
         if uniqueType
-            filename = "bench-dims-set$iDimSet-unique.png"
+            filename = "bar/bench-dims-set$iDimSet-unique.png"
         else
-            filename = "bench-dims-set$iDimSet.png"
+            filename = "bar/bench-dims-set$iDimSet.png"
         end
         savefig(filename)
     end
@@ -146,6 +148,7 @@ bar(configs => configs, true, true)
 """
 function bar(config::Pair{StructArray{Funb,T1,T2,T3}, StructArray{Funb,T1,T2,T3}}, uniqueType::Bool = false, dimAnnotation::Bool = false, uniqueDim::Bool =false, configName::Pair{String,String} = "1" => "2") where {T1,T2,T3}
 
+    mkpath("bar")
     local titleText
 
     bar_width = 0.2
@@ -226,18 +229,18 @@ function bar(config::Pair{StructArray{Funb,T1,T2,T3}, StructArray{Funb,T1,T2,T3}
         xticks!(0:numFun-1, string.(config[1].fun), rotation = 70, fontsize = xticks_font)
 
         title!(titleText)
-        ylabel!("Relative Speed ($(configName[1])/$(configName[2]))")
+        ylabel!("Relative Speed ($(configName[2])/$(configName[1]))")
         hline!([1], line=(4, :dash, 0.6, [:green]), labels = 1)
 
-        savefig("bench-dims-set$iDimSet-relative.png")
+        savefig("bar/bench-dims-set$iDimSet-relative.png")
     end
 end
 
 ################################################################
 """
-    dimplot(config::StructArray{Funb}, fungroup::Vector{Vector{String}})
+    dimplot(config::StructArray{Funb})
 
-Shows runtime of a function for different dimension sets. Functions can be grouped together to be shown in a single plot.
+Shows runtime of a function for different dimension sets.
 
 # Examples
 ```julia
@@ -249,6 +252,8 @@ dimplot(configs2)
 ```
 """
 function dimplot(config::StructArray{Funb})
+
+mkpath("dimplot")
 
 bar_width = 0.2
 bar_text_font = Int64(bar_width*40)
@@ -284,7 +289,7 @@ _, numDimsSets = numArgsDims(config.dims[1])
         xlabel!("Dimension")
         ylabel!("Time [micro seconds]")
 
-        savefig("bench-$(fname[1]).png")
+        savefig("dimplot/bench-$(fname[1]).png")
     end
 end
 
