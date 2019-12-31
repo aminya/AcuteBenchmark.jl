@@ -21,13 +21,13 @@ end
 
 ################################################################
 """
-    bar(config::StructArray{Funb}, uniqueType::Bool = false, dimAnnotation::Bool = true)
+    bar(config::StructArray{Funb}, uniqueType::Bool = false, dimAnnotation::Bool = true, uniqueDim::Bool = false)
 
 Plots bars for each dimension set.
 
 It is assumed that number of dimension sets are the same.
 
-To have a same color for the same types, set true as the 2nd argument. To turn off dimension annotations pass false as the 3rd argument.
+To have a same color for the same types, set true as the 2nd argument. To turn off dimension annotations pass false as the 3rd argument. In case of unique dimensions pass true as 4th argument to print dimension in title instead.
 
 # Examples
 ```julia
@@ -35,7 +35,9 @@ bar(configs)
 bar(configs, true, true)
 ```
 """
-function bar(config::StructArray{Funb}, uniqueType::Bool = false, dimAnnotation::Bool = true)
+function bar(config::StructArray{Funb}, uniqueType::Bool = false, dimAnnotation::Bool = true, uniqueDim::Bool = false)
+
+    local titleText
 
     numFun = length(config.fun)
 
@@ -87,10 +89,16 @@ function bar(config::StructArray{Funb}, uniqueType::Bool = false, dimAnnotation:
                     legend = false
                 end
 
-                if dimAnnotation
-                    dimText = Plots.text(stringMatrix(config.dims[iFun][:,iDimSet]), pointsize = dim_text_font, :center)
-                else
+                if uniqueDim
                     dimText = ""
+                    titleText = "Dimension $(string(config[1].dims[iFun][1,iDimSet]))"
+                else
+                    if dimAnnotation
+                        dimText = Plots.text(stringMatrix(config.dims[iFun][:,iDimSet]), pointsize = dim_text_font, :center)
+                    else
+                        dimText = ""
+                    end
+                    titleText = "Dimension set $iDimSet"
                 end
 
                 y = [config.median[iFun][iType][iDimSet]]
@@ -110,7 +118,7 @@ function bar(config::StructArray{Funb}, uniqueType::Bool = false, dimAnnotation:
 
         xticks!(0:numFun-1, string.(config.fun), rotation = 70, fontsize = xticks_font)
 
-        # title!("Benchmark")
+        title!(titleText)
         ylabel!("Time [micro seconds]")
         hline!([1], line=(4, :dash, 0.6, [:green]), labels = 1)
         if uniqueType
@@ -125,7 +133,7 @@ end
 bar(config::Funb, uniqueType::Bool = false, annotations::Bool = true) = bar(FunbArray(config), uniqueType, annotations)
 
 """
-    bar(config::Pair{StructArray{Funb}}, uniqueType::Bool = false, dimAnnotation::Bool = false)
+    bar(config::Pair{StructArray{Funb}}, uniqueType::Bool = false, dimAnnotation::Bool = false, uniqueDim::Bool =false)
 
 Gets a pair of StructArrays and calculates relative speed of coresponding elements and plots them.
 
@@ -136,7 +144,9 @@ Uses the first element of the pair for the configurations and only uses runtimes
 bar(configs => configs, true, true)
 ```
 """
-function bar(config::Pair{StructArray{Funb,T1,T2,T3}, StructArray{Funb,T1,T2,T3}}, uniqueType::Bool = false, dimAnnotation::Bool = false) where {T1,T2,T3}
+function bar(config::Pair{StructArray{Funb,T1,T2,T3}, StructArray{Funb,T1,T2,T3}}, uniqueType::Bool = false, dimAnnotation::Bool = false, uniqueDim::Bool =false) where {T1,T2,T3}
+
+    local titleText
 
     bar_width = 0.2
     bar_text_font = Int64(bar_width*40)
@@ -186,10 +196,16 @@ function bar(config::Pair{StructArray{Funb,T1,T2,T3}, StructArray{Funb,T1,T2,T3}
                     legend = false
                 end
 
-                if dimAnnotation
-                    dimText = Plots.text(stringMatrix(config[1].dims[iFun][:,iDimSet]), pointsize = dim_text_font, :center)
-                else
+                if uniqueDim
                     dimText = ""
+                    titleText = "Dimension $(string(config[1].dims[iFun][1,iDimSet]))"
+                else
+                    if dimAnnotation
+                        dimText = Plots.text(stringMatrix(config[1].dims[iFun][:,iDimSet]), pointsize = dim_text_font, :center)
+                    else
+                        dimText = ""
+                    end
+                    titleText = "Dimension set $iDimSet"
                 end
 
                 y = [config[1].median[iFun][iType][iDimSet] / config[2].median[iFun][iType][iDimSet]]
@@ -209,7 +225,7 @@ function bar(config::Pair{StructArray{Funb,T1,T2,T3}, StructArray{Funb,T1,T2,T3}
 
         xticks!(0:numFun-1, string.(config[1].fun), rotation = 70, fontsize = xticks_font)
 
-        title!("Dimension set $iDimSet")
+        title!(titleText)
         ylabel!("Relative Speed (1/2)")
 
         savefig("bench-dims-set$iDimSet-relative.png")

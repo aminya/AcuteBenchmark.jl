@@ -15,9 +15,11 @@ bar(configs)
 
 bar(configs, true)
 
+# unique Type
 bar(configs => configs, true)
 
-bar(configs => configs, true, true)
+# unique Type, false Annotation, Unique Dim
+bar(configs => configs, true, false, true)
 
 configs2 = Funb( sin, [(-1,1)],[Float32, Float64], [10 20 30 40] );
 
