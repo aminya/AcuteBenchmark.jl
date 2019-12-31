@@ -74,7 +74,7 @@ function bar(config::StructArray{Funb}, uniqueType::Bool = false, dimAnnotation:
                     else
                         labels = ""
                     end
-                    legend = :topright
+                    legend = :topleft
                     barText = ""
 
                 else
@@ -174,7 +174,7 @@ function bar(config::Pair{StructArray{Funb,T1,T2,T3}, StructArray{Funb,T1,T2,T3}
                     else
                         labels = ""
                     end
-                    legend = :topright
+                    legend = :topleft
                     barText = ""
                 else
                     fillcolor = :auto
