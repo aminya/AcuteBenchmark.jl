@@ -133,7 +133,7 @@ end
 bar(config::Funb, uniqueType::Bool = false, annotations::Bool = true) = bar(FunbArray(config), uniqueType, annotations)
 
 """
-    bar(config::Pair{StructArray{Funb}}, uniqueType::Bool = false, dimAnnotation::Bool = false, uniqueDim::Bool =false)
+    bar(config::Pair{StructArray{Funb}}, uniqueType::Bool = false, dimAnnotation::Bool = false, uniqueDim::Bool =false, configName::Pair{String,String} = "1" => "2")
 
 Gets a pair of StructArrays and calculates relative speed of coresponding elements and plots them.
 
@@ -144,7 +144,7 @@ Uses the first element of the pair for the configurations and only uses runtimes
 bar(configs => configs, true, true)
 ```
 """
-function bar(config::Pair{StructArray{Funb,T1,T2,T3}, StructArray{Funb,T1,T2,T3}}, uniqueType::Bool = false, dimAnnotation::Bool = false, uniqueDim::Bool =false) where {T1,T2,T3}
+function bar(config::Pair{StructArray{Funb,T1,T2,T3}, StructArray{Funb,T1,T2,T3}}, uniqueType::Bool = false, dimAnnotation::Bool = false, uniqueDim::Bool =false, configName::Pair{String,String} = "1" => "2") where {T1,T2,T3}
 
     local titleText
 
@@ -226,7 +226,7 @@ function bar(config::Pair{StructArray{Funb,T1,T2,T3}, StructArray{Funb,T1,T2,T3}
         xticks!(0:numFun-1, string.(config[1].fun), rotation = 70, fontsize = xticks_font)
 
         title!(titleText)
-        ylabel!("Relative Speed (1/2)")
+        ylabel!("Relative Speed ($(configName[1])/$(configName[2]))")
         hline!([1], line=(4, :dash, 0.6, [:green]), labels = 1)
 
         savefig("bench-dims-set$iDimSet-relative.png")
