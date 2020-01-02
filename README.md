@@ -7,7 +7,7 @@
 
 AcuteBenchmark allows you to benchmark functions that get Arrays as their input.
 
-It is used inside [IntelVectorMath](https://github.com/JuliaMath/VML.jl) for benchmarking its functions.
+It is used inside [IntelVectorMath](https://github.com/JuliaMath/VML.jl) for benchmarking its functions. A fully working example available here: https://github.com/JuliaMath/VML.jl/blob/AcuteBenchmark/benchmark/benchmark.jl
 
 Creates random inputs for a function based on limits, types, and dims specified.
 ```julia
@@ -53,8 +53,7 @@ To plot the relative speed, pass a pair of configs:
 bar(configsRealBase => configsRealIVM, uniqueType = true, dimAnnotation = false, uniqueDim = true, "Base" => "IntelVectorMath")
 ```
 
-![IntelVectorMath Performance Comparison](https://github.com/JuliaMath/VML.jl/raw/AcuteBenchmark/benchmark/bar/bench-dims-set4-relative.png)
-
+![IntelVectorMath Performance Comparison](https://github.com/JuliaMath/VML.jl/raw/AcuteBenchmark/benchmark/Real/bar/bench-dims-set4-relative.png)
 
 To plot how the function acts over different dimension sets:
 ```julia
@@ -70,4 +69,4 @@ To compare different sets pass an array of configs:
 dimplot([configsRealBase,configsRealIVM],["Base", "IntelVectorMath"])
 ```
 
-![Performance over dimensions](https://github.com/JuliaMath/VML.jl/raw/AcuteBenchmark/benchmark/dimplot/bench-atan-Type-Float32.png)
+![Performance over dimensions](https://github.com/JuliaMath/VML.jl/raw/AcuteBenchmark/benchmark/Real/dimplot/bench-atan-Type-Float32.png)
