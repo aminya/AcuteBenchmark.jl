@@ -4,7 +4,12 @@ using BenchmarkTools # for benchmark
 # using DataFrames
 export Funb, FunbArray, benchmark!
 
-import Distributions: @check_args
+using Distributions
+import Distributions.@check_args
+################################################################
+function Distributions.Uniform(::Type{T}, a, b) where {T <: Real}
+    return Uniform(T(a), T(b))
+end
 ################################################################
 struct Uniform2{T}
     a::T
@@ -163,8 +168,13 @@ function Funb(; fun, limits, types, dims)
                 inputs[iType][iDimSet] = Vector(undef, numArgs) # {Array{types[iType]}}
 
                 for iArg = 1:numArgs
-                    sets[iType][iArg] = Uniform2(types[iType], limits[iArg]...)
-                    inputs[iType][iDimSet][iArg] = Base.rand(sets[iType][iArg], dims[iArg, iDimSet])
+                    try
+                        sets[iType][iArg] = Uniform2(types[iType], limits[iArg]...)
+                        inputs[iType][iDimSet][iArg] = Base.rand(sets[iType][iArg], dims[iArg, iDimSet])
+                    catch
+                        sets[iType][iArg] = Uniform(types[iType], limits[iArg]...)
+                        inputs[iType][iDimSet][iArg] = Base.rand(sets[iType][iArg], dims[iArg, iDimSet])
+                    end
                 end
             end
 
