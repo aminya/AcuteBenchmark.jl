@@ -330,7 +330,7 @@ _, numDimsSets = numArgsDims(config[1].dims[1])
             plt = plot()  # different figure for different dims
 
             x = 1:numDimsSets
-            xticks = string.(dropdims(flatten([config.dims[iFun][1,iDimSet] for iDimSet = 1:numDimsSets]), dims=1))
+            xticks = string.(dropdims(flatten([config[1].dims[iFun][1,iDimSet] for iDimSet = 1:numDimsSets]), dims=1))
 
             for iLabel = 1:numLabels
 
