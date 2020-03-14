@@ -15,9 +15,9 @@ StructArrays = "09ab397b-f2b6-538f-b94a-2f83cf4a842a"
 [compat]
 BenchmarkTools = "^0.4, 0.5"
 ColorTypes = "^0.9"
-Colors = "0.8, 0.9, 0.11"
-Plots = "^0.28, 0.29"
+Colors = "0.8, 0.9, 0.11, 0.12"
 Distributions = "0.21.11, 0.22"
+Plots = "^0.28, 0.29"
 StructArrays = "0.4.1"
 julia = "1"
 
