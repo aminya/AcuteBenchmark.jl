@@ -244,7 +244,7 @@ end
 """
     dimplot(config::StructArray{Funb})
 
-Shows runtime of a function for different dimension sets.
+Shows runtime of a function for different dimension sets. The axes are logarithmic.
 
 # Examples
 ```julia
@@ -284,6 +284,8 @@ _, numDimsSets = numArgsDims(config.dims[1])
                 y,
                 labels = string(config.types[iFun][iType]),
                 legend = :bottomright,
+                xscale = :log10,
+                yscale = :log10,
                 dpi = 600
             )
             xticks!(x, xticks, fontsize = xticks_font)
@@ -302,7 +304,8 @@ dimplot(config::Funb) = dimplot(FunbArray(config))
 """
     dimplot(config::Vector{StructArray{Funb}}, labels::Vector{String})
 
-By passing a vector different benchmark sets can be grouped together to be shown in a single plot.
+By passing a vector different benchmark sets can be grouped together to be shown in a single plot. The axes are logarithmic.
+
 # Examples
 ```julia
 dimplot([config1,config2, config3], ["group 1", "group 2", "group3"])
@@ -343,6 +346,8 @@ _, numDimsSets = numArgsDims(config[1].dims[1])
                     # labels = string(config[1].types[iFun][iType]),
                     labels = labels[iLabel],
                     legend = :right,
+                    xscale = :log10,
+                    yscale = :log10,
                     dpi = 600
                 )
                 xticks!(x, xticks, fontsize = xticks_font)
