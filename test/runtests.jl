@@ -22,7 +22,7 @@ cd(@__DIR__)
 
     bar(configs => configs, uniqueType=true, dimAnnotation=false, uniqueDim=true)
 
-    configs2 = Funb( sin, [(-1,1)],[Float32, Float64], [10 20 30 40] );
+    configs2 = Funb( sin, [(-1,1)],[Float32, Float64], [10 30 50 100 200 500] );
 
     benchmark!(configs2)
 

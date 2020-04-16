@@ -57,7 +57,7 @@ bar(configsRealBase => configsRealIVM, uniqueType = true, dimAnnotation = false,
 
 To plot how the function acts over different dimension sets:
 ```julia
-configs2 = Funb( sin, [(-1,1)],[Float32, Float64], [10 20 30 40] );
+configs2 = Funb( sin, [(-1,1)],[Float32, Float64], [10 30 50 100 200 500] );
 benchmark!(configs2)
 dimplot(configs2)
 ```
