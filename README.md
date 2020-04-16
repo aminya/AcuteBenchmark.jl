@@ -61,6 +61,8 @@ configs2 = Funb( sin, [(-1,1)],[Float32, Float64], [10 20 30 40] );
 benchmark!(configs2)
 dimplot(configs2)
 ```
+The axes are logarithmic.
+
 ![bench-sin](test/dimplot/bench-sin.png)
 
 
@@ -69,4 +71,4 @@ To compare different sets pass an array of configs:
 dimplot([configsRealBase,configsRealIVM],["Base", "IntelVectorMath"])
 ```
 
-![Performance over dimensions](https://github.com/JuliaMath/VML.jl/raw/AcuteBenchmark/benchmark/Real/dimplot/bench-atan-Type-Float32.png)
+<!-- ![Performance over dimensions](https://github.com/JuliaMath/VML.jl/raw/AcuteBenchmark/benchmark/Real/dimplot/bench-atan-Type-Float32.png) -->
