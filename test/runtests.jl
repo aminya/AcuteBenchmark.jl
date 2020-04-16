@@ -27,6 +27,4 @@ cd(@__DIR__)
     benchmark!(configs2)
 
     dimplot(configs2)
-
-
 end

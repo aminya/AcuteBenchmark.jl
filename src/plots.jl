@@ -76,7 +76,7 @@ function bar(config::StructArray{Funb}; uniqueType::Bool = false, dimAnnotation:
 
                     # labels
                     if iFun == 1
-                        labels = string(config[1].types[iFun])
+                        labels = string(uniqueTypes[iType])
                     else
                         labels = ""
                     end
@@ -186,7 +186,7 @@ function bar(config::Pair{StructArray{Funb,T1,T2,T3}, StructArray{Funb,T1,T2,T3}
 
                     # labels
                     if iFun == 1
-                        labels = string(config[1].types[iFun])
+                        labels = string(uniqueTypes[iType])
                     else
                         labels = ""
                     end
