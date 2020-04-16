@@ -53,7 +53,7 @@ To plot the relative speed, pass a pair of configs:
 bar(configsRealBase => configsRealIVM, uniqueType = true, dimAnnotation = false, uniqueDim = true, "Base" => "IntelVectorMath")
 ```
 
-![IntelVectorMath Performance Comparison](https://github.com/JuliaMath/VML.jl/raw/AcuteBenchmark/benchmark/Real/bar/bench-dims-set4-relative.png)
+![IntelVectorMath Performance Comparison](https://raw.githubusercontent.com/aminya/AcuteBenchmark-Results/master/IntelVectorMath/Real/bar/bench-dims-set6-relative.png)
 
 To plot how the function acts over different dimension sets:
 ```julia
