@@ -1,11 +1,8 @@
 using Plots, Colors, ColorTypes # for plotting
 
 export bar, dimplot
+
 ################################################################
-
-flatten(A) =reduce(hcat, A)
-uniqueflatten(A) =  unique(flatten(A))
-
 function invert(c::RGB, distinguish::Bool = false)
      cout = RGB{Float64}(1-c.r,1-c.g,1-c.b)
      if distinguish && cout == c #gray
@@ -13,12 +10,6 @@ function invert(c::RGB, distinguish::Bool = false)
      end
      return cout
 end
-################################################################
-
-function stringMatrix(A)
-    sprint(Base.print_matrix, A)
-end
-
 ################################################################
 """
     bar(config::StructArray{Funb}; uniqueType::Bool = false, dimAnnotation::Bool = true, uniqueDim::Bool = false)
