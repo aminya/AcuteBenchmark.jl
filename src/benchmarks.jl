@@ -11,10 +11,16 @@ using BenchmarkTools # for benchmark
 Creates random inputs for a function based on limits, types, and dims specified.
 
 # Arguments
-- functions: function : Module.fun or :(Module.fun)
+- fun: the function `:fun` or :(Module.fun)
 - limits: min and max of possible values
 - types : type of elements
-- dims: Array of dimensions of the input vectors for each argument. Each column is for a new set of sizes, and each row is for different input arguments.
+- dims: Array of dimensions of the input vectors for each argument. Each column is for a new set of sizes, and each row is for different input arguments. So:
+     - each element gives the size of the input, and it is a:
+        - Number (for 1D)
+        - Tuple (for N-D)
+     - each row for each function argument
+     - each column for each dimension set
+
 
 # Examples
 ```julia

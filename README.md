@@ -15,13 +15,25 @@ config = Funb(
     fun = sin,
     limits = [(-1,1)],
     types = [Float32, Float64],
-    dims = [100],
+    dims = [10 100 200],
 )
 ```
 or just in a compact form:
 ```julia
-config = Funb( sin, [(-1,1)], [Float32, Float64], [10])
+config = Funb( sin, [(-1,1)], [Float32, Float64], [10 100 200])
 ```
+
+* fun: the function `:fun` or :(Module.fun)
+* limits: min and max of possible values
+* types : type of elements
+* dims:
+  - each element gives the size of the input, and it is a:
+     - Number (for 1D)
+     - Tuple (for N-D)
+  - each row for each function argument
+  - each column for each dimension set.
+
+
 
 use benchmark! to run the benchmark:
 ```julia
@@ -29,8 +41,8 @@ using AcuteBenchmark
 
 configs = FunbArray([
     Funb( sin, [(-1,1)],[Float32, Float64], [10] );
-    Funb( atan, [(-1,1), (-1,1)],[Float32, Float64],[10, 10] );
-    Funb( *, [(-1, 1), (-1, 1), (-1, 1)], [Float32, Float64], [(10,10), (10,10)] );
+    Funb( atan, [(-1,1), (-1,1)],[Float32, Float64],[10; 10] );
+    Funb( *, [(-1, 1), (-1, 1), (-1, 1)], [Float32, Float64], [(10,10); (10,10)] );
     ])
 
 benchmark!(configs)
