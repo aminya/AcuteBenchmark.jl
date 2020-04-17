@@ -188,56 +188,29 @@ function benchmark!(config::StructArray{Funb})
                         config[iFun].results[iType][iDimSet] = @benchmark $fun($inp[1])
 
                         # counting gflops
-                        try
-                            @suppress begin
-                                config[iFun].gflops[iType][iDimSet] = @gflops $fun($inp[1])
-                            end
-                        catch
-                            println("gflops counting for $(config[iFun].fun) failed")
-                        end
+                        @suppress config[iFun].gflops[iType][iDimSet] = @gflops $fun($inp[1])
 
                     else # broadcast
                         config[iFun].results[iType][iDimSet] = @benchmark $fun.($inp[1])
 
-                        # counting gflops
-                        try
-                            # TODO now only for vectors - inp[1][1]
-                            @suppress begin
-                                config[iFun].gflops[iType][iDimSet] = length(inp[1]) * @gflops $fun($inp[1][1])
-                            end
-                        catch
-                            println("gflops counting for $(config[iFun].fun) failed")
-                        end
-
+                        # counting gflops - TODO
+                        @suppress config[iFun].gflops[iType][iDimSet] = length(inp[1]) * @gflops $fun($inp[1][1])
                     end
                 else
                     if hasmethod(fun, Tuple(typeof.(inp))) # check if array method exists
                         config[iFun].results[iType][iDimSet] = @benchmark $fun($inp...)
 
                         # counting gflops
-                        try
-                            @suppress begin
-                                config[iFun].gflops[iType][iDimSet] = @gflops $fun($inp...)
-                            end
-                        catch
-                            println("gflops counting for $(config[iFun].fun) failed")
-                        end
+                        @suppress config[iFun].gflops[iType][iDimSet] = @gflops $fun($inp...)
                     else # broadcast
                         config[iFun].results[iType][iDimSet] = @benchmark $fun.($inp...)
 
-                        # counting gflops
-                        try
-                            # TODO now only for vectors - 1
-                            inp1dim = zeros(config[iFun].types[iType], numArgs)
-                            for iArg = 1:numArgs
-                                inp1dim[iArg] = Base.rand(config[iFun].sets[iType][iArg])
-                            end
-                            @suppress begin
-                                config[iFun].gflops[iType][iDimSet] = length(inp[1]) * @gflops $fun($inp1dim...)
-                            end
-                        catch
-                            println("gflops counting for $(config[iFun].fun) failed")
+                        # counting gflops - TODO
+                        inp1dim = zeros(config[iFun].types[iType], numArgs)
+                        for iArg = 1:numArgs
+                            inp1dim[iArg] = Base.rand(config[iFun].sets[iType][iArg])
                         end
+                        @suppress config[iFun].gflops[iType][iDimSet] = length(inp[1]) * @gflops $fun($inp1dim...)
                     end
                 end
                 config[iFun].median[iType][iDimSet] = median(config[iFun].results[iType][iDimSet].times) / 1000 # micro seconds
