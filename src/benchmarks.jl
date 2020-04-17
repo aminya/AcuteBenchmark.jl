@@ -2,104 +2,11 @@ using StructArrays # for type definitions
 using Statistics # for random input generation
 using BenchmarkTools # for benchmark
 # using DataFrames
+using GFlops # to count gflops
+using Suppressor
+
 export Funb, FunbArray, benchmark!
 
-using Distributions
-import Distributions.@check_args
-################################################################
-function Distributions.Uniform(::Type{T}, a, b) where {T <: Real}
-    return Uniform(T(a), T(b))
-end
-################################################################
-struct Uniform2{T}
-    a::T
-    b::T
-
-    # Uniform2{T}(a::T, b::T) constructor
-    function Uniform2{T}(a::T, b::T; check_args=true) where {T <: Real}
-        check_args && @check_args(Uniform2, a < b)
-        return new{T}(a, b)
-    end
-
-    # Abstract a,b - Uniform2{T}(a, b) constructor
-    function Uniform2{T}(a::Real, b::Real; check_args=true) where {T <: Real}
-        check_args && @check_args(Uniform2, a < b)
-        return new{T}(T(a), T(b))
-    end
-
-    # Uniform2{T}(a::T, b::T) constructor
-    function Uniform2{T}(a::T, b::T) where {T <:Complex}
-        new{T}(a, b)
-    end
-
-    # Abstract a,b - Uniform2{T}(a, b) constructor
-    function Uniform2{T}(a, b) where {T <: Complex}
-        return new{T}(T(a), T(b))
-    end
-end
-# Real
-
-# zeros() like constructor (Uniform2(T, a::T, b::T))
-function Uniform2(::Type{T}, a::T, b::T; check_args=true) where {T <: Real}
-    return Uniform2{T}(a, b, check_args = check_args)
-end
-
-# Abstract a,b - zeros() like constructor (Uniform2(T, a, b))
-function Uniform2(::Type{T}, a, b; check_args=true) where {T <: Real}
-    return Uniform2{T}(T(a), T(b), check_args = check_args)
-end
-
-# No type specified constructor:
-function Uniform2(a::Float64, b::Float64; check_args=true)
-    return Uniform2{Float64}(a, b, check_args = check_args)
-end
-
-# Abstract a,b - no type specified constructor:
-function Uniform2(a, b; check_args=true)
-    return Uniform2{Float64}(Float64(a), Float64(b), check_args = check_args)
-end
-
-# Complex
-
-# zeros() like constructor (Uniform2(T, a::T, b::T))
-function Uniform2(::Type{T}, a::T, b::T) where {T <: Complex}
-    return Uniform2{T}(a, b)
-end
-
-# Abstract a,b - zeros() like constructor (Uniform2(T, a, b))
-function Uniform2(::Type{T}, a, b) where {T <: Complex}
-    return Uniform2{T}(T(a), T(b))
-end
-
-# No type specified constructor:
-function Uniform2(a::ComplexF64, b::ComplexF64)
-    return Uniform2{ComplexF64}(a, b)
-end
-
-Base.rand(d::Uniform2{T}, dims::Integer...) where {T} =   d.a .+ (d.b - d.a) .* Base.rand(T, dims)
-
-################################################################
-"""
-    numArgsDims(in)
-Finding number of arguments and number of dimension sets
-
-# Examples
-```julia
-numArgs, numDimsSets = numArgsDims(in)
-```
-"""
-function numArgsDims(in)
-    dimsDims = ndims(in)
-    dimsSize  = size(in)
-    if dimsDims == 1
-        numArgs = dimsSize[1]
-        numDimsSets = 1
-    elseif dimsDims == 2
-        numArgs = dimsSize[1]
-        numDimsSets = dimsSize[2]
-    end
-    return numArgs, numDimsSets
-end
 ################################################################
 """
     Funb(;fun, limits, types, dims)
@@ -107,10 +14,16 @@ end
 Creates random inputs for a function based on limits, types, and dims specified.
 
 # Arguments
-- functions: function : Module.fun or :(Module.fun)
+- fun: the function `:fun` or :(Module.fun)
 - limits: min and max of possible values
 - types : type of elements
-- dims: Array of dimensions of the input vectors for each argument. Each column is for a new set of sizes, and each row is for different input arguments.
+- dims: Array of dimensions of the input vectors for each argument. Each column is for a new set of sizes, and each row is for different input arguments. So:
+     - each element gives the size of the input, and it is a:
+        - Number (for 1D)
+        - Tuple (for N-D)
+     - each row for each function argument
+     - each column for each dimension set
+
 
 # Examples
 ```julia
@@ -138,9 +51,10 @@ struct Funb
 
     sets #::Vector{Vector{T}} where {T<:Distribution} # vector of input sets for each function. Each set is an array of distributions
     inputs #::Vector{Vector{T}} where {T}
-
     results
     median
+
+    gflops
 end
 
 Funb( fun, limits, types, dims) =  Funb( fun = fun, limits = limits, types = types, dims = dims)
@@ -152,6 +66,7 @@ function Funb(; fun, limits, types, dims)
         inputs = Vector(undef, numTypes)
         results = Vector{Any}(undef, numTypes)
         median = Vector{Any}(undef, numTypes)
+        gflops = Vector{Any}(undef, numTypes)
 
         for iType = 1:numTypes
 
@@ -162,6 +77,7 @@ function Funb(; fun, limits, types, dims)
 
             results[iType] = Vector{BenchmarkTools.Trial}(undef, numDimsSets)
             median[iType] = Vector{Float64}(undef, numDimsSets)
+            gflops[iType] = Vector{Float64}(undef, numDimsSets)
 
             for iDimSet = 1:numDimsSets
 
@@ -180,7 +96,7 @@ function Funb(; fun, limits, types, dims)
 
         end
 
-    return Funb( fun, limits, types, dims, sets, inputs, results, median)
+    return Funb( fun, limits, types, dims, sets, inputs, results, median, gflops)
 end
 ################################################################
 """
@@ -270,17 +186,62 @@ function benchmark!(config::StructArray{Funb})
                 if numArgs == 1 # single argument function
                     if hasmethod(fun, (typeof(inp[1]),)) # check if array method exists
                         config[iFun].results[iType][iDimSet] = @benchmark $fun($inp[1])
+
+                        # counting gflops
+                        try
+                            @suppress begin
+                                config[iFun].gflops[iType][iDimSet] = @gflops $fun($inp[1])
+                            end
+                        catch
+                            println("gflops counting for $(config[iFun].fun) failed")
+                        end
+
                     else # broadcast
                         config[iFun].results[iType][iDimSet] = @benchmark $fun.($inp[1])
+
+                        # counting gflops
+                        try
+                            # TODO now only for vectors - inp[1][1]
+                            @suppress begin
+                                config[iFun].gflops[iType][iDimSet] = length(inp[1]) * @gflops $fun($inp[1][1])
+                            end
+                        catch
+                            println("gflops counting for $(config[iFun].fun) failed")
+                        end
+
                     end
                 else
                     if hasmethod(fun, Tuple(typeof.(inp))) # check if array method exists
                         config[iFun].results[iType][iDimSet] = @benchmark $fun($inp...)
+
+                        # counting gflops
+                        try
+                            @suppress begin
+                                config[iFun].gflops[iType][iDimSet] = @gflops $fun($inp...)
+                            end
+                        catch
+                            println("gflops counting for $(config[iFun].fun) failed")
+                        end
                     else # broadcast
                         config[iFun].results[iType][iDimSet] = @benchmark $fun.($inp...)
+
+                        # counting gflops
+                        try
+                            # TODO now only for vectors - 1
+                            inp1dim = zeros(config[iFun].types[iType], numArgs)
+                            for iArg = 1:numArgs
+                                inp1dim[iArg] = Base.rand(config[iFun].sets[iType][iArg])
+                            end
+                            @suppress begin
+                                config[iFun].gflops[iType][iDimSet] = length(inp[1]) * @gflops $fun($inp1dim...)
+                            end
+                        catch
+                            println("gflops counting for $(config[iFun].fun) failed")
+                        end
                     end
                 end
                 config[iFun].median[iType][iDimSet] = median(config[iFun].results[iType][iDimSet].times) / 1000 # micro seconds
+
             end
         end
     end
