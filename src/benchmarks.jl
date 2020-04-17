@@ -2,7 +2,10 @@ using StructArrays # for type definitions
 using Statistics # for random input generation
 using BenchmarkTools # for benchmark
 # using DataFrames
+using GFlops # to count gflops
+using Suppressor
 
+export Funb, FunbArray, benchmark!
 
 ################################################################
 """
@@ -48,9 +51,10 @@ struct Funb
 
     sets #::Vector{Vector{T}} where {T<:Distribution} # vector of input sets for each function. Each set is an array of distributions
     inputs #::Vector{Vector{T}} where {T}
-
     results
     median
+
+    gflops
 end
 
 Funb( fun, limits, types, dims) =  Funb( fun = fun, limits = limits, types = types, dims = dims)
@@ -62,6 +66,7 @@ function Funb(; fun, limits, types, dims)
         inputs = Vector(undef, numTypes)
         results = Vector{Any}(undef, numTypes)
         median = Vector{Any}(undef, numTypes)
+        gflops = Vector{Any}(undef, numTypes)
 
         for iType = 1:numTypes
 
@@ -72,6 +77,7 @@ function Funb(; fun, limits, types, dims)
 
             results[iType] = Vector{BenchmarkTools.Trial}(undef, numDimsSets)
             median[iType] = Vector{Float64}(undef, numDimsSets)
+            gflops[iType] = Vector{Float64}(undef, numDimsSets)
 
             for iDimSet = 1:numDimsSets
 
@@ -90,7 +96,7 @@ function Funb(; fun, limits, types, dims)
 
         end
 
-    return Funb( fun, limits, types, dims, sets, inputs, results, median)
+    return Funb( fun, limits, types, dims, sets, inputs, results, median, gflops)
 end
 ################################################################
 """
@@ -180,17 +186,62 @@ function benchmark!(config::StructArray{Funb})
                 if numArgs == 1 # single argument function
                     if hasmethod(fun, (typeof(inp[1]),)) # check if array method exists
                         config[iFun].results[iType][iDimSet] = @benchmark $fun($inp[1])
+
+                        # counting gflops
+                        try
+                            @suppress begin
+                                config[iFun].gflops[iType][iDimSet] = @gflops $fun($inp[1])
+                            end
+                        catch
+                            println("gflops counting for $(config[iFun].fun) failed")
+                        end
+
                     else # broadcast
                         config[iFun].results[iType][iDimSet] = @benchmark $fun.($inp[1])
+
+                        # counting gflops
+                        try
+                            # TODO now only for vectors - inp[1][1]
+                            @suppress begin
+                                config[iFun].gflops[iType][iDimSet] = length(inp[1]) * @gflops $fun($inp[1][1])
+                            end
+                        catch
+                            println("gflops counting for $(config[iFun].fun) failed")
+                        end
+
                     end
                 else
                     if hasmethod(fun, Tuple(typeof.(inp))) # check if array method exists
                         config[iFun].results[iType][iDimSet] = @benchmark $fun($inp...)
+
+                        # counting gflops
+                        try
+                            @suppress begin
+                                config[iFun].gflops[iType][iDimSet] = @gflops $fun($inp...)
+                            end
+                        catch
+                            println("gflops counting for $(config[iFun].fun) failed")
+                        end
                     else # broadcast
                         config[iFun].results[iType][iDimSet] = @benchmark $fun.($inp...)
+
+                        # counting gflops
+                        try
+                            # TODO now only for vectors - 1
+                            inp1dim = zeros(config[iFun].types[iType], numArgs)
+                            for iArg = 1:numArgs
+                                inp1dim[iArg] = Base.rand(config[iFun].sets[iType][iArg])
+                            end
+                            @suppress begin
+                                config[iFun].gflops[iType][iDimSet] = length(inp[1]) * @gflops $fun($inp1dim...)
+                            end
+                        catch
+                            println("gflops counting for $(config[iFun].fun) failed")
+                        end
                     end
                 end
                 config[iFun].median[iType][iDimSet] = median(config[iFun].results[iType][iDimSet].times) / 1000 # micro seconds
+
             end
         end
     end
