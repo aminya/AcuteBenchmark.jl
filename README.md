@@ -82,3 +82,10 @@ dimplot([configsRealBase,configsRealIVM],["Base", "IntelVectorMath"])
 ```
 
 <!-- ![Performance over dimensions](https://github.com/JuliaMath/VML.jl/raw/AcuteBenchmark/benchmark/Real/dimplot/bench-atan-Type-Float32.png) -->
+
+
+Use `AcuteBenchmark.save` and `AcuteBenchmark.load` to read and write the benchmark data.
+```julia
+AcuteBenchmark.save("test.jld2", configs)
+configs_loaded = AcuteBenchmark.load("test.jld2")
+```
